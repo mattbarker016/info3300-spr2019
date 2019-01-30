@@ -70,16 +70,74 @@
 
   <script id="notes">
 
+  console.log(color); // sometimes will work, (maybe) if assgined seperately
+
   // * More on VAR versus LET
+  var fruit = "orange";
+  var veg = "carrot";
+  // Should declare at top
+
+  if (fruit === "orange") {
+    let fruit = "apple"; // won't change
+    var veg = "leek"; // will change
+  }
+
+  console.log(fruit);
+  console.log(veg);
+
+  var color;
+  color = "red";
 
   // * Let's talk JSON
 
-  let obj = [{"name": "DDWA", "number": 3300 },{"name": "Java", "number": 2110},{"name": "Python", "number": 1110}];
-  let bad_str = '{"list": ["commas,", "single_quo\'tes", "double_quo"tes", "@sçi|"], "nestedObject": {"undefined": undefined, "defined": 3.1415926535}, "Infinity": Infinity, "NaN": NaN, "bool": true}'
+  let obj = [
+    {"name": "DDWA", "number": 3300},
+    {"name": "Java", "number": 2110},
+    {"name": "Python", "number": 1110}
+  ];
+
+  console.log(obj);
+  console.log(JSON.stringify(obj));
+
+  let bad_str = '{"list": ["commas,", "single_quo\'tes", "double_quotes", "@sçi|"], "nestedObject": {"defined": 3.1415926535}, "bool": true}'
+
+  console.log(bad_str);
+  console.log(JSON.parse(bad_str));
 
   // * Functions and loops in c/java style and functional style.
 
+  function favoriteColor() {
+    return "blue"
+  }
+  let favoriteAnimal = function() { return "dog" }
+
+  function display(f) {
+    console.log(f)
+  }
+
+  // mult(3)()
+  let mult = function(number) {
+    return function() { return number * 100; };
+  }
+
   // * Modify the text and attributes of the text tag.
+
+  let div = document.getElementById("d1");
+  div.innerText = "Goodbye";
+  div.style.color = "green";
+
+  let textEntry = document.getElementById("entry");
+  console.log(textEntry.textarea);
+
+  let slider = document.getElementById("slider");
+  slider.oninput = function () {
+    let val = slider.value;
+    let rect1 = document.getElementById("rect1");
+    rect1.setAttribute("height", val);
+    let rect2 = document.getElementById("rect2");
+    rect2.setAttribute("height", val / 2.0);
+  }
+
 
   // * Modify attributes and styles of an SVG shape.
 
