@@ -1,6 +1,6 @@
 # Instructor files #
-*.prof.htm
-*.prof.html
+*.prof*.htm
+*.prof*.html
 
 # others #
 *.pyc
