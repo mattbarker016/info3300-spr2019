@@ -9,7 +9,7 @@
 
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
   <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
-  <script src="../libs/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 
   <style>
 
@@ -54,11 +54,11 @@
 
   // 1. What the heck is "this" in Javascript functions and events?
 
-  d3.selectAll('.helloDiv').style("background", "chartreuse")
-  d3.selectAll('.helloDiv').on("click", function() {
-    console.log(this)
-    d3.select(this).style("background-color", "blue")
-  })
+  d3.selectAll(".hellodiv").style("background-color", "chartreuse");
+  d3.selectAll(".hellodiv").on("click", function() {
+    console.log(this);
+    d3.select(this).style("background-color", "beige");
+  });
 
   // 2 (again). How do we create lots of elements (but not using data just yet)?
 
@@ -67,7 +67,7 @@
   }
 
   let svg = d3.select("svg");
-  let colors = ["yellow", "blue", "aquamarine", "magenta"];
+  let colors = ["lime", "beige", "aquamarine", "magenta", "red"];
   for (let i = 0; i < 1000; i++) {
     let color = colors[Math.floor(Math.random() * colors.length)];
     svg.append("circle")
@@ -91,14 +91,26 @@
 
   */
 
-  d3.selectAll("circle").each(function() {
-    d3.select(this)
-    .transition().delay(1000).duration(1500)
-    .attr("cx",   randomPixel()   )
-    .attr("cy",   randomPixel()   )
-    // can do with / without ()
-  })
+  // d3.selectAll("circle")
+  //     .transition().delay(2200).duration(500) // wait 2.2 second, then spend .5s changing
+  //     .attr("cx", randomPixel()); // Played with parentheses
 
+  // In the above code, if we give .attr("cx",randomPixel()), it executes randomPixel once then feeds the value to all circles, like the following when run
+  // let xpos = randomPixel();
+  // d3.selectAll("circle").each(function() { // loop through the selection, function executed for EACH circle
+  //   // _this_ becomes whatever circle .each is currently iterating through
+  //   d3.select(this).transition().delay(1000).duration(1500) // wait 1 second, then spend 1.5s changing
+  //       .attr("cx", xpos);
+  // });
+
+  // In the above code, if we give .attr("cx",randomPixel) the whole function, it executes randomPixel for each circle, like the following when run
+  d3.selectAll("circle").each(function() { // loop through the selection, function executed for EACH circle
+    // _this_ becomes whatever circle .each is currently iterating through
+    d3.select(this).transition().delay(1000).duration(1500) // wait 1 second, then spend 1.5s changing
+        .attr("cx", randomPixel())
+        .attr("cy", randomPixel());
+        // can do with / without ()
+  });
 
   </script>
 

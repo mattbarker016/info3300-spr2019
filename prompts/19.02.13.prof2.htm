@@ -1,0 +1,453 @@
+<html><head>
+<title>INFO 3300 - February 11</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    #simpleLegend span {
+      margin-right: 10px;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for February 13</h3>
+  <p>
+    Project 1 is now posted on CMS! Log in there to find your teammates and project instructions.
+  </p>
+  <p>
+    Check out <a href="https://mimno.github.io/showcase/#p1">Professor Mimno's project showcase</a>. The project this year is similar enough to Prof. Mimno's from past years that these examples ought to be useful.
+  </p>
+  <p>
+    You can find a bunch of D3 examples <a href="https://github.com/d3/d3/wiki/Gallery">here</a> and access <a href="https://github.com/d3/d3/blob/master/API.md">D3's online API reference</a>. D3 also has a number of <a href="https://github.com/d3/d3-scale-chromatic/blob/master/README.md">pre-generated color scales</a>.
+  </p>
+  <p>
+    <a href="https://www.kaggle.com/martinellis/nhl-game-data#game_plays.csv">Source</a> for our second dataset today.
+  </p>
+
+  <h5>HTML for today:</h5>
+
+
+
+
+  <svg id="all" height="400" width="400" style="background: #F5F5F5">
+    <!--- We're going to be populating this dynamically today --->
+  </svg>
+  <br/>
+  <svg id="male" height="400" width="300" style="background: #F5F5FF">
+    <!--- We're going to be populating this dynamically today --->
+  </svg>
+  <svg id="female" height="400" width="300" style="background: #FFF5F5">
+    <!--- We're going to be populating this dynamically today --->
+  </svg>
+
+
+
+
+  <!--- For our second dataset >>> Each pixel is 0.25 feet --->
+  <svg id="hockey" height="350" width="430" style="margin-top:50px" >
+    <!--- the transform gives us padding automatically! --->
+    <g id="rink">
+      <line x1="1" x2="1" y1="2" y2="340" style="opacity:0.7;stroke:#aa1111;stroke-width:3;stroke-linecap:round;stroke-dasharray:5,5;"/>
+      <line x1="100" x2="100" y1="0" y2="340" style="opacity:0.7;stroke:#224499;stroke-width:6;"/>
+      <line x1="356" x2="356" y1="2" y2="338" style="opacity:0.7;stroke:#aa1111;stroke-width:3;"/>
+      <path d="M356,158 L338,158 a24,24 1 0,0 0,24 L356,182" style="opacity:0.7;fill:#cc3333;stroke:#aa1111;stroke-width:3;"/>
+      <rect x="-400" y="0" width="800" height="340" rx="56" ry="56" style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke:#000;"/>
+    </g>
+    <g id="viz">
+    </g>
+  </svg>
+  <div id="simpleLegend"> </div>
+
+
+
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today, part 1:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+  <h5>Code for today, part2:</h5>
+  <pre>
+    <code id="display2" class="hljs javascript">
+    </code>
+  </pre>
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+  // First, some data:
+  passengers = [{"age": 0, "lived": 21, "died": 13}, {"age": 5, "lived": 21, "died": 11}, {"age": 10, "lived": 12, "died": 16}, {"age": 15, "lived": 27, "died": 33}, {"age": 20, "lived": 64, "died": 115}, {"age": 25, "lived": 67, "died": 104}, {"age": 30, "lived": 132, "died": 285}, {"age": 35, "lived": 46, "died": 62}, {"age": 40, "lived": 28, "died": 57}, {"age": 45, "lived": 23, "died": 39}, {"age": 50, "lived": 27, "died": 25}, {"age": 55, "lived": 15, "died": 17}, {"age": 60, "lived": 11, "died": 16}, {"age": 65, "lived": 4, "died": 10}, {"age": 70, "lived": 0, "died": 5}, {"age": 75, "lived": 1, "died": 1}, {"age": 80, "lived": 1, "died": 0}];
+
+  passengersFemale = [{"age": 0, "lived": 10, "died": 6}, {"age": 5, "lived": 12, "died": 3}, {"age": 10, "lived": 5, "died": 8}, {"age": 15, "lived": 23, "died": 5}, {"age": 20, "lived": 48, "died": 21}, {"age": 25, "lived": 42, "died": 14}, {"age": 30, "lived": 83, "died": 47}, {"age": 35, "lived": 35, "died": 5}, {"age": 40, "lived": 21, "died": 7}, {"age": 45, "lived": 17, "died": 6}, {"age": 50, "lived": 18, "died": 2}, {"age": 55, "lived": 11, "died": 1}, {"age": 60, "lived": 9, "died": 1}, {"age": 65, "lived": 4, "died": 1}, {"age": 70, "lived": 0, "died": 0}, {"age": 75, "lived": 1, "died": 0}, {"age": 80, "lived": 0, "died": 0}];
+
+  passengersMale = [{"age": 0, "lived": 11, "died": 7}, {"age": 5, "lived": 9, "died": 8}, {"age": 10, "lived": 7, "died": 8}, {"age": 15, "lived": 4, "died": 28}, {"age": 20, "lived": 16, "died": 94}, {"age": 25, "lived": 25, "died": 90}, {"age": 30, "lived": 49, "died": 238}, {"age": 35, "lived": 11, "died": 57}, {"age": 40, "lived": 7, "died": 50}, {"age": 45, "lived": 6, "died": 33}, {"age": 50, "lived": 9, "died": 23}, {"age": 55, "lived": 4, "died": 16}, {"age": 60, "lived": 2, "died": 15}, {"age": 65, "lived": 0, "died": 9}, {"age": 70, "lived": 0, "died": 5}, {"age": 75, "lived": 0, "died": 1}, {"age": 80, "lived": 1, "died": 0}];
+
+  // 1. Let's make a doubled histogram of all passengers on the Titanic
+  let svg = d3.select("svg#all");
+  let width = svg.attr("width");
+  let height = svg.attr("height");
+
+  let maxMortality = d3.max(passengers, function(d) { return Math.max(d['lived'],d['died']); });
+  let ageScale = d3.scaleLinear().domain([0,80]).range([10,width-10]);
+  let livedScale = d3.scaleLinear().domain([0,maxMortality]).range([10,height/2]);
+  let diedScale = d3.scaleLinear().domain([0,maxMortality]).range([0,height/2-10]);
+
+  // Lines for "lived" side
+  passengers.forEach(function(d, i) {
+    svg.append("line")
+      .attr("x1",ageScale( d['age'] ))
+      .attr("x2",ageScale( d['age'] ))
+      .attr("y1",height/2)
+      .attr("y2",height/2 - livedScale( d['lived'] ))
+      .style("stroke", "#5555F0")
+      .style("stroke-width", 10);
+  });
+  // Lines for "died" side
+  passengers.forEach(function(d, i) {
+    svg.append("line")
+      .attr("x1",ageScale( d['age'] ))
+      .attr("x2",ageScale( d['age'] ))
+      .attr("y1",height/2)
+      .attr("y2",height/2 + diedScale( d['died'] ))
+      .style("stroke", "#F05555")
+      .style("stroke-width", 10);
+  });
+  // How about some labels? We can reuse our existing scales
+  passengers.forEach(function(d,i) {
+    svg.append("text")
+     .attr("text-anchor","middle")
+     .attr("font-size","15px")
+     .attr("x",ageScale(d['age'])).attr('y',10)
+     .text(d['age']);
+
+     // ------------ End of Feb. 11 class ------------
+
+     // These overflow... How do we put them on top of the bars?
+
+       svg.append("text")
+         .attr("text-anchor","middle")
+         .attr("font-size","15px")
+         .attr("x",ageScale(d['age'])).attr('y',height/2 - livedScale( d['lived'] ) - 10)
+         .text(d['age']);
+     });
+
+     // Let's do it by gender now!
+
+     // FIRST INCLUDE LET -- IT WILL CAUSE EXCEPTION
+     svg = d3.select("svg#male");
+     console.log(svg)
+     width = svg.attr("width");
+     height = svg.attr("height");
+
+     svg.append("text").text("Male Passengers").attr("x",10).attr("y",20).style("font-size","15px");
+
+     // PASTE
+     // maxMortality = d3.max(passengersMale, function(d) { return Math.max(d['lived'],d['died']); });
+     ageScale = d3.scaleLinear()
+       .domain([0,80]) // From our data
+       .range([10,width-10]); // We want to space things inwards a bit
+     livedScale = d3.scaleLinear()
+       .domain([0,maxMortality]) // Start by picking arbitrary number (set at 200 for errors)
+       .range([10,height/2]); // Let's end in the middle
+     diedScale = d3.scaleLinear()
+       .domain([0,maxMortality]) // Start by picking arbitrary number (we will come back to this)
+       .range([0,height/2-10]); // Let's start in the middle
+
+     // Why iterate 3 separate times?
+     passengersMale.forEach(function(d, i) {
+       svg.append("line")
+         .attr("x1",ageScale( d['age'] ))
+         .attr("x2",ageScale( d['age'] ))
+         .attr("y1",height/2)
+         .attr("y2",height/2 - livedScale( d['lived'] ))
+         .style("stroke", "#5555F0")
+         .style("stroke-width", 10);
+       svg.append("line")
+         .attr("x1",ageScale( d['age'] ))
+         .attr("x2",ageScale( d['age'] ))
+         .attr("y1",height/2)
+         .attr("y2",height/2 + diedScale( d['died'] ))
+         .style("stroke", "#F05555")
+         .style("stroke-width", 10);
+       svg.append("text")
+         .attr("text-anchor","middle")
+         .attr("font-size","10px")
+         .attr("x",ageScale(d['age'])).attr('y',height/2 - livedScale( d['lived'] ) - 10)
+         .text(d['age']);
+     });
+
+     // Now do female side of dataset -- THE SCALES BETWEEN THE TWO WILL DISAGREE
+     // COMMENT OUT maxMORTALITY LINES SO WE HAVE CONSISTENCY!!!
+     svg = d3.select("svg#female");
+     console.log(svg)
+     width = svg.attr("width");
+     height = svg.attr("height");
+
+       svg.append("text").text("Female Passengers").attr("x",10).attr("y",20).style("font-size","15px");
+     // PASTE
+     // maxMortality = d3.max(passengersFemale, function(d) { return Math.max(d['lived'],d['died']); });
+     ageScale = d3.scaleLinear()
+       .domain([0,80]) // From our data
+       .range([10,width-10]); // We want to space things inwards a bit
+     livedScale = d3.scaleLinear()
+       .domain([0,maxMortality]) // Start by picking arbitrary number (set at 200 for errors)
+       .range([10,height/2]); // Let's end in the middle
+     diedScale = d3.scaleLinear()
+       .domain([0,maxMortality]) // Start by picking arbitrary number (we will come back to this)
+       .range([0,height/2-10]); // Let's start in the middle
+
+     // Why iterate 3 separate times?
+     passengersFemale.forEach(function(d, i) {
+       svg.append("line")
+         .attr("x1",ageScale( d['age'] ))
+         .attr("x2",ageScale( d['age'] ))
+         .attr("y1",height/2)
+         .attr("y2",height/2 - livedScale( d['lived'] ))
+         .style("stroke", "#5555F0" )
+         .style("stroke-width", 10);
+       svg.append("line")
+         .attr("x1",ageScale( d['age'] ))
+         .attr("x2",ageScale( d['age'] ))
+         .attr("y1",height/2)
+         .attr("y2",height/2 + diedScale( d['died'] ))
+         .style("stroke", "#F05555")
+         .style("stroke-width", 10);
+       svg.append("text")
+         .attr("text-anchor","middle")
+         .attr("font-size","10px")
+         .attr("x",ageScale(d['age'])).attr('y',height/2 - livedScale( d['lived'] ) - 10)
+         .text(d['age']);
+     });
+
+  </script>
+
+
+  <script id="notes2">
+
+    // Noticed that the rink is chopped off -- add padding
+    //  attr -- transform="translate(0,0)"
+
+    // Let's import a dataset of NHL goals from 2012 to 2017
+    //  NOTE: NHL rinks are 200ft by 85ft, or 100x85 a side with 28ft rounded edges
+    //    Our SVG canvas maps 1 foot to 4 pixels
+
+    let layer = d3.select("g#viz"); // g is a GROUP of SVG elements
+
+
+    // Imports will fail unless you launch your server in the root dir of the repository
+    d3.json("../datasets/nhl_goals.json").then(function(data) {
+
+      console.log(data)
+
+      // (Note that we've applied a transform to the SVG for padding purposes)
+      let xScale = d3.scaleLinear().domain([0,100]).range([0,400]); // Our image is 0.25ft per pixel larger
+      let yScale = d3.scaleLinear().domain([-42.5,42.5]).range([0,340]);
+      let color = d3.scaleOrdinal(d3.schemeCategory10);
+
+      data.forEach(function(d,i) {
+
+        layer.append("circle")
+              .attr("r", 4)
+              .attr("cx", xScale(d['x']))
+              .attr("cy", yScale(d['y']))
+              .style("fill","#22222") // At this point it should be very dark
+              .attr("opacity",0.05)
+              .style("fill",color(d['secondaryType'])) // Comment out old
+              .attr("label",d['secondaryType'])
+              // !!! let color = d3.scaleOrdinal(d3.schemeCategory10);
+              // .attr("opacity", d['secondaryType']=="Slap Shot" ? 0.05 : 0) // Call out shorthand
+
+      });
+
+      // Note that we might have data on both sides -- move transform to expose
+      data = data.filter(function(d) { return d["rink_side"] == "right"});
+      console.log(data.length)
+
+
+      // How can we make a simple legend?
+      console.log(color.domain())
+      color.domain().forEach(function(d,i) {
+        d3.select("#simpleLegend")
+            .append("span")
+            .text(d)
+            .style("color",color(d))
+            .on("mouseover", function() {
+              d3.selectAll("circle").each( function() {
+                let element = d3.select(this);
+                if (element.attr("label") === d) {
+                  element.attr("opacity",0.4);
+                }
+                else {
+                  element.attr("opacity",0.01);
+                }
+              })
+
+            })
+      });
+
+
+      // If we have extra time!
+
+      let bucketSize = 4;
+      let buckets = createBuckets(data,
+                      function(d){ return Math.abs(d['x']); },
+                      function(d){ return d['y']; },
+                      [0,100],
+                      [-42.5,42.5],
+                      bucketSize );
+
+      let min = data.length+1;
+      let max = -1;
+      for (let x = 0; x < buckets.length; x++) {
+        for (let y = 0; y < buckets[x].length; y++) {
+          if (buckets[x][y] < min) { min = buckets[x][y]; }
+          if (buckets[x][y] > max) { max = buckets[x][y]; }
+        }
+      }
+      console.log(buckets);
+
+      let xScaleB = d3.scaleLinear().domain([0,100]).range([0,400]); // Our image is 4x larger
+      let yScaleB = d3.scaleLinear().domain([0,85]).range([0,340]);
+      let colors = d3.scaleSequential(d3.interpolateMagma).domain([min,max]);
+
+      // How do we make this log?
+      let log = d3.scaleLog().domain([min+1,max]); // Range 0-1 default
+      colors = d3.scaleSequential(function(d) { return d3.interpolateMagma(log(d)); });
+
+      // Use our own colors now!
+      colors = d3.scaleLog().interpolate(d3.interpolateHcl).domain([min+1,max]).range(["steelblue","beige"]);
+
+
+      for (let xBin=0; xBin<buckets.length; xBin++) {
+        for (let yBin=0; yBin<buckets[xBin].length; yBin++) {
+          layer.append("rect")
+                .attr("x",xBin * xScaleB(bucketSize))
+                .attr("y",yBin * yScaleB(bucketSize))
+                .attr("width", xScaleB(bucketSize))
+                .attr("height", yScaleB(bucketSize))
+                .attr("label", buckets[xBin][yBin])
+                .style("fill",colors(buckets[xBin][yBin]));
+
+        }
+      }
+
+
+    })
+    // Note: You can also do an "await" style async load, if you've read up on JS promises
+
+
+    // Valid values for secondaryType: ['NA', 'Deflected', 'Tip-In', 'Wrap-around', 'Wrist Shot', 'Snap Shot', 'Backhand', 'Slap Shot']
+
+
+    // Helper function for heatmap
+    function createBuckets(data, xGet, yGet, xDomain, yDomain, bucketSize) {
+      // Create empty buckets
+      let buckets = [];
+      for (let x = xDomain[0]; x < xDomain[1]; x=x+bucketSize) {
+        let bucket = [];
+        for (let y = yDomain[0]; y < yDomain[1]; y=y+bucketSize) {
+          bucket.push(0);
+        }
+        buckets.push(bucket);
+      }
+      // Populate buckets
+      for (let i = 0; i < data.length; i++) {
+        let x = Math.floor((xGet(data[i]) - xDomain[0]) / bucketSize);
+        let y = Math.floor((yGet(data[i]) - yDomain[0]) / bucketSize);
+        buckets[x][y]++;
+      }
+      return buckets;
+
+    }
+
+  </script>
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+  <script>
+  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  <script>
+
+  // d3.legend.js
+  // (C) 2012 ziggy.jonsson.nyc@gmail.com
+  // MIT licence
+
+  (function() {
+  d3.legend = function(g) {
+    g.each(function() {
+      var g= d3.select(this),
+          items = {},
+          svg = d3.select(g.property("nearestViewportElement")),
+          legendPadding = g.attr("data-style-padding") || 5,
+          lb = g.selectAll(".legend-box").data([true]),
+          li = g.selectAll(".legend-items").data([true])
+
+      lb.enter().append("rect").classed("legend-box",true)
+      li.enter().append("g").classed("legend-items",true)
+
+      svg.selectAll("[data-legend]").each(function() {
+          var self = d3.select(this)
+          items[self.attr("data-legend")] = {
+            pos : self.attr("data-legend-pos") || this.getBBox().y,
+            color : self.attr("data-legend-color") != undefined ? self.attr("data-legend-color") : self.style("fill") != 'none' ? self.style("fill") : self.style("stroke")
+          }
+        })
+
+      items = d3.entries(items).sort(function(a,b) { return a.value.pos-b.value.pos})
+
+
+      li.selectAll("text")
+          .data(items,function(d) { return d.key})
+          .call(function(d) { d.enter().append("text")})
+          .call(function(d) { d.exit().remove()})
+          .attr("y",function(d,i) { return i+"em"})
+          .attr("x","1em")
+          .text(function(d) { ;return d.key})
+
+      li.selectAll("circle")
+          .data(items,function(d) { return d.key})
+          .call(function(d) { d.enter().append("circle")})
+          .call(function(d) { d.exit().remove()})
+          .attr("cy",function(d,i) { return i-0.25+"em"})
+          .attr("cx",0)
+          .attr("r","0.4em")
+          .style("fill",function(d) { console.log(d.value.color);return d.value.color})
+
+      // Reposition and resize the box
+      var lbbox = li[0][0].getBBox()
+      lb.attr("x",(lbbox.x-legendPadding))
+          .attr("y",(lbbox.y-legendPadding))
+          .attr("height",(lbbox.height+2*legendPadding))
+          .attr("width",(lbbox.width+2*legendPadding))
+    })
+    return g
+  }
+  })()
+
+  </script>
+
+
+  </div>
+</body>
+</html>
