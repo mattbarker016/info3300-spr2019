@@ -261,8 +261,8 @@
 
 
     // 5. Make a simple legend with mouseovers
-    console.log(color.domain());
-    color.domain().forEach(function(d,i) {
+    console.log(colorScale.domain());
+    colorScale.domain().forEach(function(d,i) {
       d3.select("#simpleLegend")
         .append("span").text(d)
         .style("color", colorScale(d))
