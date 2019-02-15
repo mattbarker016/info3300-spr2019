@@ -1,0 +1,250 @@
+<html><head>
+<title>INFO 3300 - February 15</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    .legend span {
+      margin-right: 10px;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for February 15</h3>
+  <p>
+    Project 1 has started up! Log in there to find your teammates and project instructions.
+  </p>
+  <p>
+    Check out <a href="https://mimno.github.io/showcase/#p1">Professor Mimno's project showcase</a>. The project this year is similar enough to Prof. Mimno's from past years that these examples ought to be useful.
+  </p>
+  <p>
+    <a href="https://www.kaggle.com/martinellis/nhl-game-data#game_plays.csv">Source</a> for our first dataset today. Our second dataset is sourced from Gapminder. We'll do a spinoff on one of <a href="https://youtu.be/jbkSRLYSojo">Hans Rosling's famous data presentations</a>.
+  </p>
+  <p>
+    I made a <a href="https://jsfiddle.net/03adec6x/">JSFiddle</a> if you want to play with color scales and interpolation.
+  </p>
+
+  <h5>HTML for today:</h5>
+
+
+  <!--- For our first dataset >>> Each pixel is 0.25 feet --->
+  <svg id="hockey" height="350" width="430" style="margin-top:20px" >
+
+    <g id="rink" transform="translate(20,5)">
+      <line x1="1" x2="1" y1="2" y2="340" style="opacity:0.7;stroke:#aa1111;stroke-width:3;stroke-linecap:round;stroke-dasharray:5,5;"/>
+      <line x1="100" x2="100" y1="0" y2="340" style="opacity:0.7;stroke:#224499;stroke-width:6;"/>
+      <line x1="356" x2="356" y1="2" y2="338" style="opacity:0.7;stroke:#aa1111;stroke-width:3;"/>
+      <path d="M356,158 L338,158 a24,24 1 0,0 0,24 L356,182" style="opacity:0.7;fill:#cc3333;stroke:#aa1111;stroke-width:3;"/>
+      <rect x="-400" y="0" width="800" height="340" rx="56" ry="56" style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke:#000;"/>
+    </g>
+
+    <g id="viz" transform="translate(20,5)" >
+    </g>
+
+  </svg>
+  <div id="simpleLegend" class="legend"> </div>
+
+
+  <svg id="scatterplot" height="400" width="400" style="background: #eee; margin-top:50px" >
+
+  </svg>
+  <div id="anotherSimpleLegend" class="legend"> </div>
+
+
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today, part 1:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+  <h5>Code for today, part 2:</h5>
+  <pre>
+    <code id="display2" class="hljs javascript">
+    </code>
+  </pre>
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+
+  let layer = d3.select("g#viz");
+
+
+  // NOTE: We're now importing the raw form of Wednesday's dataset
+
+  //  It has some issues that I cleaned up before class started
+  d3.json("../datasets/nhl_goals_raw.json").then( function(data) {
+
+  // NOTE: We're now importing the raw form of Wednesday's dataset
+
+    // (from 4) We'll put our spot check fixes here, before we draw anything
+
+
+
+
+    // 2. Build some scales
+    let xScale = d3.scaleLinear().domain([0,100]).range([0,400]);
+    let yScale = d3.scaleLinear().domain([-42.5,42.5]).range([0,340]);
+    let colorScale = d3.scaleOrdinal(d3.schemeCategory10); // This builds its range as data come in
+
+    // 3. Add circles
+    data.forEach(function(d,i) {
+      layer.append("circle")
+            .attr("r",4)
+            .attr("cx", xScale( d['x'] ))
+            .attr("cy", yScale( d['y'] ))
+            .style("fill",colorScale( d['secondaryType'] ))
+            .attr("opacity",0.2)
+            .attr("label",d['secondaryType']);
+    });
+
+
+    // 4. Spot check data
+    // What kinds of things could go wrong?
+
+    // Now is a good time to introduce catching of promises
+    // Let's write some disastrous code!
+
+
+
+
+
+
+    // 5. Make a simple legend with mouseovers
+    colorScale.domain().forEach(function(d,i) {
+      d3.select("#simpleLegend")
+        .append("span").text(d)
+        .style("color", colorScale(d))
+        .on("mouseover", function() {
+          d3.selectAll("circle").each(function() {
+            let circle = d3.select(this);
+            if (circle.attr("label") === d) {
+              circle.attr("opacity", 0.1);
+            }
+            else {
+              circle.attr("opacity", 0.01);
+            }
+          })
+        })
+    })
+
+
+    // --- End of class on 02/13
+
+
+
+    // 6. Let's make a heatmap
+    //   ( remember to comment out the circles code to speed things up )
+    // a. Bin points
+
+
+    // b. Construct scales
+
+
+    // c. Draw boxes
+
+
+
+    // Use our own colors!
+
+
+    // Still looks messy -- how do we constrain it to the rink outline?
+
+
+  })
+
+
+
+  // Helper function for heatmap
+  function createBuckets(data, xGet, yGet, xDomain, yDomain, bucketSize) {
+    let buckets = [];  // Create empty buckets
+    for (let x = xDomain[0]; x < xDomain[1]; x=x+bucketSize) {
+      let bucket = [];
+      for (let y = yDomain[0]; y < yDomain[1]; y=y+bucketSize) {
+        bucket.push(0);
+      }
+      buckets.push(bucket);
+    }
+    for (let i = 0; i < data.length; i++) {  // Populate buckets
+      let x = Math.floor((xGet(data[i]) - xDomain[0]) / bucketSize);
+      let y = Math.floor((yGet(data[i]) - yDomain[0]) / bucketSize);
+      buckets[x][y]++;
+    }
+    return buckets;
+  }
+  </script>
+
+
+
+
+
+  <script id="notes2">
+
+  // Let's make a plain old scatterplot
+
+  // 0. Find our SVG and get that ready
+  //     We're going to use a new way of padding that makes axes easier
+
+
+
+  // 1. Import some CSV data
+  d3.csv("../datasets/gapminder.csv").then( function(data) {
+
+    // Useful fields:  "Life Expectancy"  "GDP/Person (PPP$)"   "Total Population"
+
+    // 2. Check for data issues
+
+
+
+    // 3. Let's build some scales
+
+
+
+    // 4. Make some axes before we plot the circles
+
+
+
+    // 5. Start plotting circles and see what happens
+
+
+
+    // 6. Let's borrow our old legend code
+
+
+
+    // 7. Let's also now add a way to get all circles back after using the legend
+
+
+
+
+  });
+
+
+  </script>
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>
