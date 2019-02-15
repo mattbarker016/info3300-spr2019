@@ -39,15 +39,23 @@
   <!--- For our first dataset >>> Each pixel is 0.25 feet --->
   <svg id="hockey" height="350" width="430" style="margin-top:20px" >
 
+    <defs>
+       <clipPath id="rink-cut">
+         <rect x="-400" y="0" width="800" height="340" rx="56" ry="56" />
+       </clipPath>
+     </defs>
+
+     <!--- defs above and clip-path in <g> below limit heatmap area to rink outlines declared through the rect --->
+
+    <g id="viz" transform="translate(20,5)" clip-path="url(#rink-cut)">
+    </g>
+
     <g id="rink" transform="translate(20,5)">
       <line x1="1" x2="1" y1="2" y2="340" style="opacity:0.7;stroke:#aa1111;stroke-width:3;stroke-linecap:round;stroke-dasharray:5,5;"/>
       <line x1="100" x2="100" y1="0" y2="340" style="opacity:0.7;stroke:#224499;stroke-width:6;"/>
       <line x1="356" x2="356" y1="2" y2="338" style="opacity:0.7;stroke:#aa1111;stroke-width:3;"/>
       <path d="M356,158 L338,158 a24,24 1 0,0 0,24 L356,182" style="opacity:0.7;fill:#cc3333;stroke:#aa1111;stroke-width:3;"/>
       <rect x="-400" y="0" width="800" height="340" rx="56" ry="56" style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke:#000;"/>
-    </g>
-
-    <g id="viz" transform="translate(20,5)" >
     </g>
 
   </svg>
@@ -89,9 +97,17 @@
   // NOTE: We're now importing the raw form of Wednesday's dataset
 
     // (from 4) We'll put our spot check fixes here, before we draw anything
+    console.log(data.length);
 
+    data = data.filter( (d) => {
+      // keep the item return true, discard if return false
+      return d['secondaryType'] !== "NA" && d['x'] !== "NA"&& d['y'] !== "NA";
+    });
 
+    console.log(data.length);
 
+    /*
+    // Commented out so we can work on heatmap
 
     // 2. Build some scales
     let xScale = d3.scaleLinear().domain([0,100]).range([0,400]);
@@ -100,6 +116,10 @@
 
     // 3. Add circles
     data.forEach(function(d,i) {
+
+      if (xScale( d['x'] ) == undefined || yScale( d['y'] ) == undefined) {
+        console.log(d);
+      }
       layer.append("circle")
             .attr("r",4)
             .attr("cx", xScale( d['x'] ))
@@ -115,10 +135,16 @@
 
     // Now is a good time to introduce catching of promises
     // Let's write some disastrous code!
+    // console.log(undefined[undefined][undefined]++);
+    // add after .then() block:
+    //   .catch( e => { console.log("Error detected: "+e.message);} );
 
-
-
-
+    // Ways our data went wrong:
+    //   NA in secondaryType for a few points
+    //   x and y values seemed to show up at 0,0 which makes no sense
+    //     This is because the attr("cx",) function helpfully changed the undefined that xScale() returned into a 0
+    //     Using the if statement at the top of (3), we identified "NA" in some of the x values, which causes xScale to return undefined
+    //   Using translate() to move the <g> for our visualization, we found some points by the other goal. This suggests we might want to use the "rink_side" attribute to do more filtering later on...
 
 
     // 5. Make a simple legend with mouseovers
@@ -138,31 +164,77 @@
           })
         })
     })
-
-
-    // --- End of class on 02/13
+    */
 
 
 
     // 6. Let's make a heatmap
+
+    //   Heatmaps are visualizations that use blocks of color to show where data are concentrated. This is often a more computationally efficient way to show density than lots of circles with low opacity, but it has the risk of hiding useful information (like being able to filter by secondaryType).
+
     //   ( remember to comment out the circles code to speed things up )
     // a. Bin points
-
+    let bucketSize = 2;
+    let buckets = createBuckets(data,  // Helper function we created
+                    d => Math.abs(d['x']),  // Math.abs shows up here so we don't crash due to negative x values. Leaving it to you to figure out how to change xGet, xDomain, and later xScaleB to heatmap the whole rink
+                    d => d['y'],
+                    [0,100],
+                    [-42.5,42.5],
+                    bucketSize );
+    console.log(buckets);
 
     // b. Construct scales
+    let min = data.length+1;
+    let max = -1;
+    for (let x=0; x<buckets.length; x++) {
+      for (let y=0; y<buckets[x].length; y++) {
+        if (buckets[x][y] < min) { min = buckets[x][y]; }
+        if (buckets[x][y] > max) { max = buckets[x][y]; }
+      }
+    }
+    console.log(min,max);
 
+    let xScaleB = d3.scaleLinear().domain([0,100]).range([0,400]);
+    let yScaleB = d3.scaleLinear().domain([0,85]).range([0,340]);
+
+    // This color scale uses the interpolateMagma colors that are packaged with d3
+    //  interpolateMagma is actually a function that takes in 0-1 and outputs colors
+    let colors = d3.scaleSequential(d3.interpolateMagma).domain([min,max]);
+    // But... it's mostly black because of unevenly distributed frequencies
+
+    // To make the interpolateMagma scale work with log, we have to do a bit more
+    // We MUST use +1 here because zero points will become -Infinity when we apply the log transform. The acceptable values for log are +-1
+    // Our original scale "d3.scaleSequential(d3.interpolateMagma).domain([min,max])" can be rewritten as:
+    //     "d3.scaleSequential( d => d3.interpolateMagma(d) ).domain([min,max]);, so to add a log scale...
+    let log = d3.scaleLog().domain([min+1,max]); // takes in data, outputs a log-transformed [0,1]
+    colors = d3.scaleSequential( d => {
+      return d3.interpolateMagma( log(d) ); // applies interpolateMagma to the [0,1] transformed data values
+    });
+
+    // Making our own log scale
+    //  interpolateHcl is a function that tells the scaleLog to "fill in" between the range endpoints with colors
+    //    try out interpolateHsl  interpolateLab  and others from d3.color docs
+    colors = d3.scaleLog().interpolate(d3.interpolateHcl).domain([min+1,max])
+                  .range(["steelblue","beige"])
 
     // c. Draw boxes
+    for (let x=0; x<buckets.length; x++) {
+      for (let y=0; y<buckets[x].length; y++) {
+        layer.append("rect")
+          .attr("x", x * xScaleB(bucketSize))
+          .attr("y", y * yScaleB(bucketSize))
+          .attr("width", xScaleB(bucketSize))
+          .attr("height", yScaleB(bucketSize))
+          .style("fill", colors(buckets[x][y]+1))
+          .attr("label", buckets[x][y]+1);  // We MUST use +1 here because zero points will become -Infinity when we apply the log transform. The acceptable values for log are +-1
 
-
-
-    // Use our own colors!
-
+      }
+    }
 
     // Still looks messy -- how do we constrain it to the rink outline?
+    // See <defs> section in SVG at the top -- we define a clipping path and apply it
 
-
-  })
+  });
 
 
 
@@ -195,7 +267,16 @@
 
   // 0. Find our SVG and get that ready
   //     We're going to use a new way of padding that makes axes easier
+  let svg = d3.select("svg#scatterplot");
+  let width = svg.attr("width");
+  let height = svg.attr("height");
+  // This is a clever way to do padding that is more adjustable when you are designing
+  let margin = { "top": 10, "right": 10, "bottom": 50, "left":50};
+  let chartWidth = width - margin["left"] - margin.right; // If you know the key is fixed text, you can access it with . instead of [""]
+  let chartHeight = height - margin["top"] - margin.bottom;
 
+  let scatter = svg.append("g") // We make a subgroup to contain the points we are adding, and use the margins to shrink it and move it to the right place, so that it doesn't overlap our axes
+        .attr("transform","translate("+margin.left+","+margin.top+")");
 
 
   // 1. Import some CSV data
@@ -204,18 +285,56 @@
     // Useful fields:  "Life Expectancy"  "GDP/Person (PPP$)"   "Total Population"
 
     // 2. Check for data issues
+    console.log(data);
+
+    // What we find here are that most of the attributes are imported as strings rather than numbers. Let's cast them.
+    data.forEach( (d, i) => {
+      d['life'] = Number(d['Life Expectancy']);
+      d['gdp'] = Number(d['GDP/Person (PPP$)']);
+      // d['Total Population'] = Number(d['Total Population']); // This will pump out NaNs. Why?
+      d['pop'] = Number(d['Total Population'].replace(/,/g,"")); // Fix with replace for commas
+    });
 
 
 
     // 3. Let's build some scales
+    const gdpMin = d3.min(data, d => d['gdp']);
+    const gdpMax = d3.max(data, d => d['gdp']);
+    const gdpScale = d3.scaleLinear().domain([gdpMin+1, gdpMax]).range([0, chartWidth]);
 
+    const lifeMin = d3.min(data, d => d['life']);
+    const lifeMax = d3.max(data, d => d['life']);
+    const lifeScale = d3.scaleLinear().domain([lifeMin, lifeMax])
+            .range([chartHeight, 0]);
+
+    const popMin = d3.min(data, d => d['pop']);
+    const popMax = d3.max(data, d => d['pop']);
+    const popScale = d3.scaleLinear().domain([popMin, popMax]).range([5,10]); // circle size
+
+    const regionScale = d3.scaleOrdinal(d3.schemeCategory10); // don't need to define domain
 
 
     // 4. Make some axes before we plot the circles
+    let leftAxis = d3.axisLeft(lifeScale);
+    svg.append("g")
+      .attr("class", "y axis")
+      .attr("transform","translate("+(margin.left-10)+","+margin.top+")")
+      .call(leftAxis);
+    let bottomAxis = d3.axisBottom(gdpScale)
+    let element = svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform","translate("+margin.left+","+(chartHeight + margin.top+10)+")")
+    bottomAxis(element);
 
+    // If you want the axes to "touch" at 0,0, then remove the +- 10 from the translation
+    //  but this risks occluding points
+
+    // --- End of class, left as exercise until Monday
 
 
     // 5. Start plotting circles and see what happens
+
+    // Some things will look weird here, so we might have to adjust scales and check for more bad values...
 
 
 
@@ -224,6 +343,7 @@
 
 
     // 7. Let's also now add a way to get all circles back after using the legend
+    //    hint: try out the .on("mouseout") event for the legend element to find when the mouse leaves that area
 
 
 
