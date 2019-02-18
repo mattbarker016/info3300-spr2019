@@ -55,7 +55,7 @@
   <!--- For our second dataset >>> Each pixel is 0.25 feet --->
   <svg id="hockey" height="350" width="430" style="margin-top:50px" >
 
-    <g id="rink">
+    <g id="rink" transform="translate(20,5)">
       <line x1="1" x2="1" y1="2" y2="340" style="opacity:0.7;stroke:#aa1111;stroke-width:3;stroke-linecap:round;stroke-dasharray:5,5;"/>
       <line x1="100" x2="100" y1="0" y2="340" style="opacity:0.7;stroke:#224499;stroke-width:6;"/>
       <line x1="356" x2="356" y1="2" y2="338" style="opacity:0.7;stroke:#aa1111;stroke-width:3;"/>
@@ -63,7 +63,7 @@
       <rect x="-400" y="0" width="800" height="340" rx="56" ry="56" style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke:#000;"/>
     </g>
 
-    <g id="viz">
+    <g id="viz" transform="translate(20,5)">
     </g>
 
   </svg>
@@ -130,34 +130,85 @@
     svg.append("text")
      .attr("text-anchor","middle")
      .attr("font-size","15px")
-     .attr("x",ageScale(d['age'])).attr('y',10)
-     .text(d['age']);
-
-     // ------------ End of Feb. 11 class ------------
-
-     // These overflow... How do we put them on top of the bars?
+     .attr("x",ageScale(d['age']))
+     .attr('y',height/2 - livedScale( d['lived'] ) - 10)
+     .text(d['age'])
+     .style("font-size","13px");
 
 
    });
 
    // 2. Let's make histograms by gender
    // Male case
+   svg = d3.select("svg#male");
+   width = svg.attr("width");
+   height = svg.attr("height");
 
+   // SCALES BETWEEN THE THREE WILL DISAGREE, so we don't make new maxMortality here
+   ageScale = d3.scaleLinear().domain([0,80]).range([10,width-10]);
+   livedScale = d3.scaleLinear().domain([0,maxMortality]).range([10,height/2]);
+   diedScale = d3.scaleLinear().domain([0,maxMortality]).range([0,height/2-10]);
 
-   // svg.append("text").text("Male Passengers").attr("x",10).attr("y",20).style("font-size","15px");
-
-   // Rebuild our scales
-
-   // Why iterate 3 separate times?
+   // Lines for "lived" side
+   passengersMale.forEach(function(d, i) {
+     svg.append("line") // Lived
+       .attr("x1",ageScale( d['age'] ))
+       .attr("x2",ageScale( d['age'] ))
+       .attr("y1",height/2)
+       .attr("y2",height/2 - livedScale( d['lived'] ))
+       .style("stroke", "#5555F0")
+       .style("stroke-width", 10);
+     svg.append("line") // Died
+       .attr("x1",ageScale( d['age'] ))
+       .attr("x2",ageScale( d['age'] ))
+       .attr("y1",height/2)
+       .attr("y2",height/2 + diedScale( d['died'] ))
+       .style("stroke", "#F05555")
+       .style("stroke-width", 10);
+     svg.append("text") // Labels
+      .attr("text-anchor","middle")
+      .attr("x",ageScale(d['age']))
+      .attr('y',height/2 - livedScale( d['lived'] ) - 10)
+      .text(d['age'])
+      .style("font-size","10px");
+   });
+   svg.append("text").text("Male Passengers").attr("x",10).attr("y",20).style("font-size","15px");
 
    // Female case
+   svg = d3.select("svg#female");
+   width = svg.attr("width");
+   height = svg.attr("height");
+
+   // SCALES BETWEEN THE THREE WILL DISAGREE, so we don't make new maxMortality here
+   ageScale = d3.scaleLinear().domain([0,80]).range([10,width-10]);
+   livedScale = d3.scaleLinear().domain([0,maxMortality]).range([10,height/2]);
+   diedScale = d3.scaleLinear().domain([0,maxMortality]).range([0,height/2-10]);
 
 
-   // svg.append("text").text("Female Passengers").attr("x",10).attr("y",20).style("font-size","15px");
+   passengersFemale.forEach(function(d, i) {
+     svg.append("line") // Lived
+       .attr("x1",ageScale( d['age'] ))
+       .attr("x2",ageScale( d['age'] ))
+       .attr("y1",height/2)
+       .attr("y2",height/2 - livedScale( d['lived'] ))
+       .style("stroke", "#5555F0")
+       .style("stroke-width", 10);
+     svg.append("line") // Died
+       .attr("x1",ageScale( d['age'] ))
+       .attr("x2",ageScale( d['age'] ))
+       .attr("y1",height/2)
+       .attr("y2",height/2 + diedScale( d['died'] ))
+       .style("stroke", "#F05555")
+       .style("stroke-width", 10);
+     svg.append("text") // Labels
+      .attr("text-anchor","middle")
+      .attr("x",ageScale(d['age']))
+      .attr('y',height/2 - livedScale( d['lived'] ) - 10)
+      .text(d['age'])
+      .style("font-size","10px");
+   });
+   svg.append("text").text("Female Passengers").attr("x",10).attr("y",20).style("font-size","15px");
 
-   // Rebuild our scales (trouble incoming)
-
-   // Draw
 
   </script>
 
@@ -169,28 +220,73 @@
   //  NOTE: NHL rinks are 200ft by 85ft, or 100x85 a side with 28ft rounded edges
   //    Our SVG canvas maps 1 foot to 4 pixels
 
-  // (0. Check out the SVG element and add some padding)
+  // (0. Check out the SVG element and add some padding using transform)
 
   // 1. Get our SVG element and import some data!
   //     (NOTE: Imports will fail unless you launch your server in the root dir of the repository)
 
+  let layer = d3.select("g#viz");
 
+  d3.json("../datasets/nhl_goals.json").then( function(data) {
+     // .then acts on promise provided by .json
+     // .json sends along the loaded data as a parameter when it fulfills the promise
+     // This can also be done using the "await" construction, but that is more complex to build properly
 
+    //console.log(data);
 
     // 2. Build some scales
-    // (We've applied a transform to the SVG rather than scales to make padding easier)
-
+    // (We've applied a transform to the SVG rather than scales to make padding easier, so range() can start at 0)
+    let xScale = d3.scaleLinear().domain([0,100]).range([0,400]);
+    let yScale = d3.scaleLinear().domain([-42.5,42.5]).range([0,340]);
+    let colorScale = d3.scaleOrdinal(d3.schemeCategory10); // This builds its range as data come in
 
     // 3. Add circles
+    data.forEach(function(d,i) {
+
+      layer.append("circle")
+            .attr("r",4)
+            .attr("cx", xScale( d['x'] ))
+            .attr("cy", yScale( d['y'] ))
+            .style("fill",colorScale( d['secondaryType'] ))
+            .attr("opacity",0.05)
+            .attr("label",d['secondaryType']);
+            // If colorScale() seen the secondaryType before, it returns the color it gave it
+            // If it hasn't seen this secondaryType before, it assigns a new color to it and remembers it
+            // We added label as a debugging tool and also a helpful reference for the legend
+    });
 
 
     // 4. Spot check data
+    //   We didn't do this on Feb13 -- let's do this Friday
 
 
     // 5. Make a simple legend with mouseovers
+    console.log(colorScale.domain());
+    colorScale.domain().forEach(function(d,i) {
+      d3.select("#simpleLegend")
+        .append("span").text(d)
+        .style("color", colorScale(d))
+        .on("mouseover", function() {
+          // Creates a function for each of the secondaryTypes when you mouse over it
+          d3.selectAll("circle").each(function() {
+            let circle = d3.select(this);
+            if (circle.attr("label") === d) {
+              // The reason "d" works here is because it is stored within the function when you create it and bind it to mouseover. It is not lost after forEach completes
+              circle.attr("opacity", 0.4);
+            }
+            else {
+              circle.attr("opacity", 0.01);
+            }
+          })
+
+        })
+    })
+    // Later we will go through another way to build legends without the .attr("label") madness
 
 
-    // 6. If we have extra time, let's make a heatmap
+    // --- End of class
+
+    // 6. Let's make a heatmap
     // If we have extra time!
     // a. Bin points
 
@@ -201,7 +297,7 @@
     // c. Create boxes
 
 
-
+});
 
 
 

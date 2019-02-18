@@ -1,0 +1,359 @@
+<html><head>
+<title>INFO 3300 - February 18</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    .legend span {
+      margin-right: 10px;
+    }
+    #joindemo circle {
+      stroke-width: 2;
+      stroke: #aaa;
+      fill: #fff;
+    }
+    #joindemo text {
+      fill: #fff;
+      text-anchor: middle;
+      alignment-baseline: middle;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #scatterplot text {
+      text-anchor: middle;
+      alignment-baseline: middle;
+    }
+
+
+    .gridlines line {
+      stroke: #bbb;
+    }
+
+    .gridlines .domain {
+      stroke: none;
+    }
+
+
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for February 18</h3>
+  <p>
+    Project 1 has started up! Log in there to find your teammates and project instructions. <br/>
+    We'll have mentors out later this afternoon on Campuswire. Don't forget about milestone 1 tonight.
+  </p>
+  <p>
+    Check out <a href="https://mimno.github.io/showcase/#p1">Professor Mimno's project showcase</a>. The project this year is similar enough to Prof. Mimno's from past years that these examples ought to be useful. (Note: we have past years' and will be comparing it to submissions from this year)
+  </p>
+  <p>
+    Homework 4 is out on CMS! Due next Wednesday at 11:59PM.<br/>
+    Homeworks 1 and 2 will be returned this afternoon.
+  </p>
+  <p>
+    Please observe the <a href="https://cuinfo.cornell.edu/aic.cfm">Cornell Code of Academic Integrity</a>. CS has a <a href="http://www.cs.cornell.edu/undergrad/CSMajor#ai">guide on academic integrity</a> which might also be useful.
+  </p>
+  <p>
+    Mike Bostock has a <a href="https://bl.ocks.org/mbostock/3019563">handy page discussing chart margins</a>.
+  </p>
+  <p>
+    Learn more about <a href="https://github.com/d3/d3-shape#curveLinear">d3 line smoothing choices</a>.
+  </p>
+
+  <h5>HTML for today:</h5>
+
+
+  <svg id="scatterplot" height="400" width="600" style="background: #fff; margin-top:50px" >
+
+  </svg>
+  <div id="simpleLegend" class="legend"> </div>
+  <br/>
+  <svg id="joindemo" height="120" width="500" style="background: #27716e; margin-top:50px" >
+
+  </svg>
+  <p id="printout" style="margin-top:10px">(Dataset will appear here)</p>
+  <button id="join1">[1,2,3,4,5]</button>
+  <button id="join2">[1,2,3,4,5,6,7,8]</button>
+  <button id="join3">[    3,  5,  7,8,9,10]</button>
+  <br/>
+  <svg id="linechart" height="400" width="400" style="background: #fff; margin-top:50px" >
+
+  </svg>
+
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today, part 1:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+  <h5>Code for today, part 2:</h5>
+  <pre>
+    <code id="display2" class="hljs javascript">
+    </code>
+  </pre>
+  <h5>Code for today, part 3:</h5>
+  <pre>
+    <code id="display3" class="hljs javascript">
+    </code>
+  </pre>
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+
+  // Let's make a plain old scatterplot -- we are going to re-visit a few things from Friday
+
+
+  // 0. Find our SVG and get that ready
+  //     We're going to use a new way of padding that makes axes easier
+  let svg = d3.select("svg#scatterplot");
+  let width = svg.attr("width");
+  let height = svg.attr("height");
+  // This is a clever way to do padding that is more adjustable when you are designing
+  let margin = { top: 10, right: 10, bottom: 50, left:50};
+  let chartWidth = width - margin.left - margin.right; // If you know the key is fixed text, you can access it with . instead of [""]
+  let chartHeight = height - margin.top - margin.bottom;
+
+  // 1. Import some CSV data
+  d3.csv("../datasets/gapminder.csv").then( function(data) {
+
+    // Useful fields:  "Life Expectancy"  "GDP/Person (PPP$)"   "Total Population"
+
+    // 2. Check for data issues
+    console.log(data);
+
+    // What we find here are that most of the attributes are imported as strings rather than numbers. Let's cast them.
+    data.forEach( (d, i) => {
+      d['life'] =  ""  ;
+      d['gdp'] =  ""  ;
+      d['pop'] =  ""  ;
+    });
+
+
+    // 3. Let's build some scales
+    const gdpMin = d3.min(data, d => d['gdp']);
+    const gdpMax = d3.max(data, d => d['gdp']);
+    const gdpScale = d3.scaleLinear()
+            .domain([gdpMin, gdpMax])
+            .range([0, chartWidth]); // x axis
+
+    const lifeMin = d3.min(data, d => d['life']);
+    const lifeMax = d3.max(data, d => d['life']);
+    const lifeScale = d3.scaleLinear()
+            .domain([lifeMin, lifeMax])
+            .range([0, chartHeight]); // y axis
+
+    const popMin = d3.min(data, d => d['pop']);
+    const popMax = d3.max(data, d => d['pop']);
+    const popScale = d3.scaleLinear()
+            .domain([popMin, popMax])
+            .range([5,10]); // circle size
+
+    const regionScale = d3.scaleOrdinal(d3.schemeCategory10); // don't need to define domain
+
+
+    // 4. Make some axes before we plot the circles
+    //     Let's also style them this time
+    // Y axis
+
+
+
+    // X axis
+
+
+
+
+    // If you want the axes to "touch" at 0,0, then remove the +- 10 from the translation
+    //  but this risks occluding points
+
+    // 5. Let's use axes to make some gridlines too!
+
+
+
+
+    // This looks a bit weird, right?
+
+
+
+
+    // 5. Start plotting circles and see what happens
+
+
+    let scatter = svg.append("g") // We make a subgroup to contain the points we are adding, and use the margins to shrink it and move it to the right place, so that it doesn't overlap our axes
+          .attr("transform","translate("+margin.left+","+margin.top+")");
+
+    data.forEach( (d, i) => {
+
+      let gdp = gdpScale(d['gdp']);
+      let life = lifeScale(d['life']);
+      let pop = popScale(d['pop']);
+      let region = regionScale(d['Region']);
+
+      // Draw
+
+    });
+
+    // Some things may look weird here, so we might have to adjust scales and check for more bad values...
+
+
+
+    // 6. Let's borrow our old legend code
+
+    regionScale.domain().forEach(function(d,i) {
+      d3.select("#simpleLegend")
+        .append("span").text(d)
+        .style("color", regionScale(d))
+        .on("mouseover", function() {
+          scatter.selectAll("circle").each(function() {  // Need to change to scatter. since we may have more circles now
+            let circle = d3.select(this);
+            if (circle.attr("region") === d) {
+              circle.attr("opacity", 0.8);
+            }
+            else {
+              circle.attr("opacity", 0.1);
+            }
+          })
+        })
+    });
+
+
+    // 7. Let's also now add a way to get all circles back after using the legend
+
+
+
+
+
+  });
+
+
+
+
+  </script>
+
+
+
+
+
+  <script id="notes2">
+
+  // Let's see how data joins work in d3
+  //   This will be our most-used design pattern for the rest of the term
+  //   It is not critical for static data, but extremely useful when you have interactivity
+
+  // 1. Housekeeping
+  // Get our chart group and chart object
+  let demoSVG = d3.select("#joindemo");
+  let demoSVGWidth = demoSVG.attr("width");
+  let demoSVGHeight = demoSVG.attr("height");
+  let demoMargin = { "top": 10, "right": 40, "bottom": 0, "left": 40};
+  let demoWidth = demoSVGWidth - demoMargin.left - demoMargin.right;
+  let demoHeight = demoSVGHeight - demoMargin.top - demoMargin.bottom;
+
+  // Our editable group
+  let demo = demoSVG.append("g").attr("transform","translate("+demoMargin.left+","+demoMargin.top+")");
+
+  // Simple scale for locating some circles
+
+
+  // Let's make some quick labels for places
+
+
+
+
+  // 2. Conduct a data join whenever a button is pressed
+  // This function is called whenever we press a button (see functions at bottom of script tag).
+  //  Receives new data in its parameter
+  function updateChart(dataset) {
+
+    // Select all the elements you might want, even if they don't exist yet
+    //  Assign data to them. This gives you access to the data join functions
+
+
+    // Update anything as needed using data
+
+
+    // Enter gives us anything new that's been added this .data() call
+
+
+    // Exit gives us anything that ought to go away because their datapoints are gone
+
+  }
+
+
+
+
+
+
+
+
+  // Helper events for our buttons
+  d3.select("#join1").on("mouseup", () => {
+    let dat = [1,2,3,4,5];
+    d3.select("#printout").text(JSON.stringify(dat));
+    updateChart( dat );
+  });
+  d3.select("#join2").on("mouseup", () => {
+    let dat = [1,2,3,4,5,6,7,8];
+    d3.select("#printout").text(JSON.stringify(dat));
+    updateChart( dat );
+  });
+  d3.select("#join3").on("mouseup", () => {
+    let dat = [3,5,7,8,9,10];
+    d3.select("#printout").text(JSON.stringify(dat));
+    updateChart( dat );
+  });
+
+
+  </script>
+
+  <script id="notes3">
+
+  let lineSVG = d3.select("svg#linechart");
+  let lineCWidth = lineSVG.attr("width");
+  let lineCHeight = lineSVG.attr("height");
+  let lineCMargin = { top: 10, right: 10, bottom: 50, left:50};
+  let lineChartWidth = lineCWidth - lineCMargin.left - lineCMargin.right;
+  let lineChartHeight = lineCHeight - lineCMargin.top - lineCMargin.bottom;
+
+
+
+
+
+
+
+
+  function randData(num) {
+    ret = [];
+    for (let i=0; i<num; i++) {
+      ret.push((Math.random() * 10) - 5)
+    };
+    return ret;
+  }
+
+  </script>
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>
