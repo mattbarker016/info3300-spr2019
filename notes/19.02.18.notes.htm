@@ -75,18 +75,6 @@
 
   </svg>
   <div id="simpleLegend" class="legend"> </div>
-  <br/>
-  <svg id="joindemo" height="120" width="500" style="background: #27716e; margin-top:50px" >
-
-  </svg>
-  <p id="printout" style="margin-top:10px">(Dataset will appear here)</p>
-  <button id="join1">[1,2,3,4,5]</button>
-  <button id="join2">[1,2,3,4,5,6,7,8]</button>
-  <button id="join3">[    3,  5,  7,8,9,10]</button>
-  <br/>
-  <svg id="linechart" height="400" width="400" style="background: #fff; margin-top:50px" >
-
-  </svg>
 
 
 
@@ -94,16 +82,6 @@
   <h5>Code for today, part 1:</h5>
   <pre>
     <code id="display1" class="hljs javascript">
-    </code>
-  </pre>
-  <h5>Code for today, part 2:</h5>
-  <pre>
-    <code id="display2" class="hljs javascript">
-    </code>
-  </pre>
-  <h5>Code for today, part 3:</h5>
-  <pre>
-    <code id="display3" class="hljs javascript">
     </code>
   </pre>
 
@@ -130,28 +108,33 @@
     // Useful fields:  "Life Expectancy"  "GDP/Person (PPP$)"   "Total Population"
 
     // 2. Check for data issues
-    console.log(data);
 
     // What we find here are that most of the attributes are imported as strings rather than numbers. Let's cast them.
     data.forEach( (d, i) => {
-      d['life'] =  ""  ;
-      d['gdp'] =  ""  ;
-      d['pop'] =  ""  ;
+      d['life'] =  Number(d["Life Expectancy"])  ;
+      d['gdp'] =  Number(d["GDP/Person (PPP$)"])   ;
+      d['pop'] =  Number(d["Total Population"].replace(/,/g,""))   ;
     });
 
+    // We noticed that the chart seemed very crunched at the top
+    //  Looking at the data, we found points with 0 values in gdp and life
+    //  (This is probably because they were NA or blank and the Number() cast them to 0
+    data = data.filter( d => d['gdp'] != 0 && d['life'] != 0 );
+
+    console.log(data);
 
     // 3. Let's build some scales
     const gdpMin = d3.min(data, d => d['gdp']);
     const gdpMax = d3.max(data, d => d['gdp']);
-    const gdpScale = d3.scaleLinear()
-            .domain([gdpMin, gdpMax])
+    const gdpScale = d3.scaleLog()
+            .domain([gdpMin+1, gdpMax+1])
             .range([0, chartWidth]); // x axis
 
     const lifeMin = d3.min(data, d => d['life']);
     const lifeMax = d3.max(data, d => d['life']);
     const lifeScale = d3.scaleLinear()
             .domain([lifeMin, lifeMax])
-            .range([0, chartHeight]); // y axis
+            .range([chartHeight, 0]); // y axis -- we reversed this to make the y axis work
 
     const popMin = d3.min(data, d => d['pop']);
     const popMax = d3.max(data, d => d['pop']);
@@ -165,26 +148,38 @@
     // 4. Make some axes before we plot the circles
     //     Let's also style them this time
     // Y axis
-
-
+    let leftAxis = d3.axisLeft(lifeScale); // ticks looked fine here
+    svg.append("g").attr("class", "y axis") // Not d3-required. Just helpful for styling
+      .attr("transform","translate("+ (margin.left-10) +","+ margin.top +")")
+      .call(leftAxis);
 
     // X axis
-
-
-
+    let bottomAxis = d3.axisBottom(gdpScale).ticks(8, d3.format("$.01s")); // Making simpler ticks without the e
+    // Check out http://bl.ocks.org/zanarmstrong/05c1e95bf7aa16c4768e
+    let element = svg.append("g").attr("class", "x axis")
+      .attr("transform","translate("+ margin.left +","+ (margin.top + chartHeight + 10) +")");
+    bottomAxis(element); // Same as .call
 
     // If you want the axes to "touch" at 0,0, then remove the +- 10 from the translation
     //  but this risks occluding points
 
     // 5. Let's use axes to make some gridlines too!
+    // Y axis
+    let leftGridlines = d3.axisLeft(lifeScale).tickSize(-chartWidth-10).tickFormat("");
+    svg.append("g").attr("class", "y gridlines") // See CSS at top of file
+      .attr("transform","translate("+ (margin.left-10) +","+ margin.top +")")
+      .call(leftGridlines);
+
+    // X axis
+    let bottomGridlines = d3.axisBottom(gdpScale).tickSize(-chartHeight-10).tickFormat("");
+          // Why is tickSize negative?
+    element = svg.append("g").attr("class", "x gridlines")
+      .attr("transform","translate("+ margin.left +","+ (margin.top + chartHeight + 10) +")");
+    bottomGridlines(element);
 
 
-
-
-    // This looks a bit weird, right?
-
-
-
+    // If you want the axes to "touch" at 0,0, then remove the +- 10 from the translation
+    //  but this risks occluding points
 
     // 5. Start plotting circles and see what happens
 
@@ -194,20 +189,29 @@
 
     data.forEach( (d, i) => {
 
-      let gdp = gdpScale(d['gdp']);
+      let gdp = gdpScale(d['gdp']+1);
       let life = lifeScale(d['life']);
       let pop = popScale(d['pop']);
       let region = regionScale(d['Region']);
 
       // Draw
+      let circle = scatter.append("circle")
+            .attr("cx", gdp)
+            .attr("cy", life)
+            .attr("r", pop)
+            .attr("opacity", 0.8)
+            .style("fill", region)
+            .attr("region", d["Region"])
+            .attr("nation", d["nation"]);
 
     });
 
     // Some things may look weird here, so we might have to adjust scales and check for more bad values...
-
+    // We ended up changing gdp from linear to log
 
 
     // 6. Let's borrow our old legend code
+    //  (This should just work, since I edited it to look for .attr("region")
 
     regionScale.domain().forEach(function(d,i) {
       d3.select("#simpleLegend")
@@ -244,111 +248,11 @@
 
 
 
-  <script id="notes2">
-
-  // Let's see how data joins work in d3
-  //   This will be our most-used design pattern for the rest of the term
-  //   It is not critical for static data, but extremely useful when you have interactivity
-
-  // 1. Housekeeping
-  // Get our chart group and chart object
-  let demoSVG = d3.select("#joindemo");
-  let demoSVGWidth = demoSVG.attr("width");
-  let demoSVGHeight = demoSVG.attr("height");
-  let demoMargin = { "top": 10, "right": 40, "bottom": 0, "left": 40};
-  let demoWidth = demoSVGWidth - demoMargin.left - demoMargin.right;
-  let demoHeight = demoSVGHeight - demoMargin.top - demoMargin.bottom;
-
-  // Our editable group
-  let demo = demoSVG.append("g").attr("transform","translate("+demoMargin.left+","+demoMargin.top+")");
-
-  // Simple scale for locating some circles
-
-
-  // Let's make some quick labels for places
-
-
-
-
-  // 2. Conduct a data join whenever a button is pressed
-  // This function is called whenever we press a button (see functions at bottom of script tag).
-  //  Receives new data in its parameter
-  function updateChart(dataset) {
-
-    // Select all the elements you might want, even if they don't exist yet
-    //  Assign data to them. This gives you access to the data join functions
-
-
-    // Update anything as needed using data
-
-
-    // Enter gives us anything new that's been added this .data() call
-
-
-    // Exit gives us anything that ought to go away because their datapoints are gone
-
-  }
-
-
-
-
-
-
-
-
-  // Helper events for our buttons
-  d3.select("#join1").on("mouseup", () => {
-    let dat = [1,2,3,4,5];
-    d3.select("#printout").text(JSON.stringify(dat));
-    updateChart( dat );
-  });
-  d3.select("#join2").on("mouseup", () => {
-    let dat = [1,2,3,4,5,6,7,8];
-    d3.select("#printout").text(JSON.stringify(dat));
-    updateChart( dat );
-  });
-  d3.select("#join3").on("mouseup", () => {
-    let dat = [3,5,7,8,9,10];
-    d3.select("#printout").text(JSON.stringify(dat));
-    updateChart( dat );
-  });
-
-
-  </script>
-
-  <script id="notes3">
-
-  let lineSVG = d3.select("svg#linechart");
-  let lineCWidth = lineSVG.attr("width");
-  let lineCHeight = lineSVG.attr("height");
-  let lineCMargin = { top: 10, right: 10, bottom: 50, left:50};
-  let lineChartWidth = lineCWidth - lineCMargin.left - lineCMargin.right;
-  let lineChartHeight = lineCHeight - lineCMargin.top - lineCMargin.bottom;
-
-
-
-
-
-
-
-
-  function randData(num) {
-    ret = [];
-    for (let i=0; i<num; i++) {
-      ret.push((Math.random() * 10) - 5)
-    };
-    return ret;
-  }
-
-  </script>
-
-
 
 
   <!--- calls the highlight library to fill the <pre> tag with code --->
   <script>
   document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
-  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
   hljs.initHighlightingOnLoad();
   </script>
 
