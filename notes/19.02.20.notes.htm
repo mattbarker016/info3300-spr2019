@@ -239,7 +239,7 @@
             // Add a label
             scatter.append("text")
               // IDs have strict requirements on allowable characters ( https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/id )
-              .attr("id", d['nation'].replace(/[ _-,.:'#!\?]/g,""))  // We need to be able to find this to remove it later, so lets store an ID
+              .attr("id", d['nation'].replace(/[ _\-,.:'#!\?]/g,""))  // We need to be able to find this to remove it later, so lets store an ID
               .attr("x", gdp )
               .attr("y", life - 15 )
               .text(d['nation']);
@@ -251,7 +251,7 @@
               .attr("r",pop)
               .style("stroke","none");
             // Grab label by element ID
-            d3.select("#" + d['nation'].replace(/[ _-,.:'#!\?]/g,"")).remove();
+            d3.select("#" + d['nation'].replace(/[ _\-,.:'#!\?]/g,"")).remove();
           });
 
 
