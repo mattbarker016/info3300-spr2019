@@ -1,5 +1,5 @@
 <html><head>
-<title>INFO 3300 - February 18</title>
+<title>INFO 3300 - February 20</title>
 
   <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
 
@@ -126,7 +126,7 @@
     // 3. Let's build some scales
     const gdpMin = d3.min(data, d => d['gdp']);
     const gdpMax = d3.max(data, d => d['gdp']);
-    const gdpScale = d3.scaleLog()
+    const gdpScale = d3.scaleLinear()
             .domain([gdpMin+1, gdpMax+1])
             .range([0, chartWidth]); // x axis
 
