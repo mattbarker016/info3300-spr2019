@@ -23,12 +23,12 @@
       stroke: none;
     }
 
-    #linechart .line {
+    .line {
       stroke: steelblue;
       fill: none;
     }
 
-    #linechart circle {
+    circle {
       fill: darkblue;
       stroke: none;
     }
@@ -52,17 +52,26 @@
 
   <h5>HTML for today:</h5>
 
-
   <svg id="linechart" height="300" width="600" style="background: #eee; margin-top:50px" >
 
   </svg>
 
+  <h5>Bonus HTML for today:</h5>
+
+  <svg id="fancylinechart" height="300" width="600" style="background: #eee; margin-top:50px" >
+
+  </svg>
 
 
   <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
   <h5>Code for today:</h5>
   <pre>
     <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+  <h5>Bonus code!</h5>
+  <pre>
+    <code id="display2" class="hljs javascript">
     </code>
   </pre>
 
@@ -114,16 +123,18 @@
   // 4. Make a home for the line & the line itself. See how the line generator works
   let lineLayer = lineSVG.append("g").attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")")
 
+
   lineLayer.append("path").attr("class","line")
+      .datum( [] ) // datum is the single form of .data -- it sends the whole list of data to one element instead of .data mapping each row to an element
+        // We need to give d3.line() some .datum to start with, so we provide an empty array
+        //  If you already know what your data look like, you can just give it the whole dataset at this point
+      .attr("d", line);
+      // equivalent to .attr("d", d => line(d)), recall that d3.line() returns a function that takes a datapoint parameter
+
 
 
   // 5. Make a home for some circles too!
   let circLayer = lineSVG.append("g").attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")")
-            .datum( [] ) // datum is the single form of .data -- it sends the whole list of data to one element instead of .data mapping each row to an element
-              // We need to give d3.line() some .datum to start with, so we provide an empty array
-              //  If you already know what your data look like, you can just give it the whole dataset at this point
-            .attr("d", line);
-      // equivalent to .attr("d", d => line(d)), recall that d3.line() returns a function that takes a datapoint parameter
 
 
   function updateLineChart(mouseData) {
@@ -223,6 +234,7 @@
   <!--- calls the highlight library to fill the <pre> tag with code --->
   <script>
   document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
   hljs.initHighlightingOnLoad();
   </script>
 
