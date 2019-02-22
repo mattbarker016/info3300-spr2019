@@ -83,8 +83,8 @@
   // Bind an event listener to the entire page looking for mouse moves every second
   //  Calls updateLineChart with new data if some new moves are detected
   var mouseLocations = [];
-  var tickSize = 500; //in milliseconds
-  var totalTimeWindow = 15; //in seconds
+  var tickSize = 700; //in milliseconds
+  var totalTimeWindow = 7; //in seconds
   var totalTicks = (totalTimeWindow*1000) / tickSize;
   document.body.addEventListener('mousemove',function(e)
   {
@@ -227,7 +227,7 @@
                           // Notice we use totalTicks-mouseData.length+1 here instead of 0 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
       .transition()
       .ease(d3.easeLinear)
-      .duration(tickSize-5)
+      .duration(tickSize-50)
       .attr("transform","translate("+xLineScale(totalTicks-mouseData.length)+",0)"); //  BONUS CONTENT: Apply new transform to scroll stuff into view
                           // Notice we use totalTicks-mouseData.length here instead of -1 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
 
@@ -249,7 +249,7 @@
                           // Notice we use totalTicks-mouseData.length+1 here instead of 0 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
       .transition()
       .ease(d3.easeLinear)
-      .duration(tickSize-5)
+      .duration(tickSize-50)
       .attr("transform","translate("+xLineScale(totalTicks-mouseData.length)+",0)"); //  BONUS CONTENT: Apply new transform to scroll stuff into view
                           // Notice we use totalTicks-mouseData.length here instead of -1 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
 
