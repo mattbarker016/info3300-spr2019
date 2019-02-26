@@ -1,0 +1,199 @@
+<html><head>
+<title>INFO 3300 - February 2</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    .legend span {
+      margin-right: 10px;
+    }
+    #joindemo circle {
+      stroke-width: 2;
+      stroke: #aaa;
+      fill: #fff;
+    }
+    #joindemo text {
+      fill: #fff;
+      text-anchor: middle;
+      alignment-baseline: middle;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #scatterplot text {
+      text-anchor: middle;
+      alignment-baseline: middle;
+    }
+
+
+    .gridlines line {
+      stroke: #bbb;
+    }
+
+    .gridlines .domain {
+      stroke: none;
+    }
+
+    #linechart .line {
+      stroke: steelblue;
+      fill: none;
+    }
+
+
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for February 22</h3>
+  <p>
+    Learn more about <a href="https://github.com/d3/d3-shape#curveLinear">d3 line smoothing choices</a>. <a href="https://bl.ocks.org/d3noob/ced1b9b18bd8192d2c898884033b5529">Here</a> is a helpful block.
+  </p>
+  <p>
+    <a href="http://bl.ocks.org/zanarmstrong/05c1e95bf7aa16c4768e">This blocks demo</a> might be helpful for generating new tick formattings.
+  </p>
+  <p>
+    Christopher Healey provides an <a href="https://www.csc2.ncsu.edu/faculty/healey/PP/">amazing resource on viz perception</a> that you might want to check out.
+  </p>
+
+  <h5>HTML for today:</h5>
+
+
+  <svg id="linechart" height="300" width="600" style="background: #eee; margin-top:50px" >
+
+  </svg>
+
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+  // 1. Housekeeping
+  // Get our chart group and chart object
+  let lineSVG = d3.select("svg#linechart");
+  let lineWidth = lineSVG.attr("width");
+  let lineHeight = lineSVG.attr("height");
+  let lineMargin = { top: 10, right: 10, bottom: 50, left:50};
+  let lineChartWidth = lineWidth - lineMargin.left - lineMargin.right;
+  let lineChartHeight = lineHeight - lineMargin.top - lineMargin.bottom;
+
+
+  // 2. Set up some empty scales and axes
+  //      X
+  let xLineScale = d3.scaleLinear().range([0, lineChartWidth]);
+  let xLineAxis = d3.axisBottom(xLineScale)  //.tickFormat
+
+  lineSVG.append("g")
+    .attr("class", "x axis")
+    .attr("transform","translate("+lineMargin.left+","+(lineChartHeight + lineMargin.top+10)+")")
+    .call(xLineAxis);
+
+  //      Y
+  let yLineScale = d3.scaleLinear().range([0, lineChartHeight]); // Since Y is at the top of mouse move, lets' reverse it from our usual pattern
+  let yLineAxis = d3.axisLeft(yLineScale)  //.tickFormat
+
+  lineSVG.append("g")
+    .attr("class", "y axis")
+    .attr("transform","translate("+(lineMargin.left-10)+","+lineMargin.top+")")
+    .call(yLineAxis);
+
+
+  // 3. Set up d3's line generator
+  //      Need to tell it how to get x and y
+
+
+
+  //  smoothing functions: .curve(d3.curveMonotoneX), curveStep, curveBasis, curveCardinal
+
+
+  // 4. Make a home for the line & the line itself. See how the line generator works
+
+
+  // 5. Make a home for some circles too!
+  let circLayer = lineSVG.append("g").attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")")
+
+
+
+  function updateLineChart(mouseData) {
+    // Nothing happens here... for now
+
+
+  }
+
+
+
+
+
+
+
+  // Bind an event listener to the entire page looking for mouse moves every second
+  //  Calls updateLineChart with new data if some new moves are detected
+  var mouseLocations = [];
+  let tickSize = 1000; //in milliseconds
+  let totalTimeWindow = 15; //in seconds
+  let totalTicks = (totalTimeWindow*1000) / tickSize;
+  document.body.addEventListener('mousemove',function(e)
+  {
+    if (mouseLocations.length < 1) {
+
+      mouseLocations.push( {
+        "mouseX": e.clientX,
+        "mouseY": e.clientY,
+        "time": Math.floor(Date.now() / tickSize)
+      } );
+      updateLineChart(mouseLocations);
+
+    }
+    else {
+      t = Math.floor(Date.now() / tickSize);
+
+      // Check if we've reached a new second
+      if (mouseLocations[mouseLocations.length-1].time < t) {
+        mouseLocations.push( {
+          "mouseX": e.clientX,
+          "mouseY": e.clientY,
+          "time": t
+        } );
+        if (mouseLocations.length > totalTicks) {
+          mouseLocations.shift(); // remove last element added
+        }
+        updateLineChart(mouseLocations);
+      }
+
+    }
+
+  });
+
+
+  </script>
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
+  document.getElementById("display3").innerText = document.getElementById("notes3").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>

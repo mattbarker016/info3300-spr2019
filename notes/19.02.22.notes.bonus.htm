@@ -1,0 +1,360 @@
+<html><head>
+<title>INFO 3300 - February 2</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    .legend span {
+      margin-right: 10px;
+    }
+
+    .gridlines line {
+      stroke: #bbb;
+    }
+
+    .gridlines .domain {
+      stroke: none;
+    }
+
+    .line {
+      stroke: steelblue;
+      fill: none;
+    }
+
+    circle {
+      fill: darkblue;
+      stroke: none;
+    }
+
+
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Notes for February 22</h3>
+  <p>
+    Learn more about <a href="https://github.com/d3/d3-shape#curveLinear">d3 line smoothing choices</a>. <a href="https://bl.ocks.org/d3noob/ced1b9b18bd8192d2c898884033b5529">Here</a> is a helpful block.
+  </p>
+  <p>
+    <a href="http://bl.ocks.org/zanarmstrong/05c1e95bf7aa16c4768e">This blocks demo</a> might be helpful for generating new tick formattings.
+  </p>
+  <p>
+    Christopher Healey provides an <a href="https://www.csc2.ncsu.edu/faculty/healey/PP/">amazing resource on viz perception</a> that you might want to check out.
+  </p>
+
+  <h5>HTML for today:</h5>
+
+  <svg id="linechart" height="300" width="600" style="background: #eee; margin-top:50px" >
+
+  </svg>
+
+  <h5>Bonus HTML for today:</h5>
+
+  <svg id="fancylinechart" height="300" width="600" style="background: #eee; margin-top:50px" >
+
+  </svg>
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+  <h5>Bonus code!</h5>
+  <pre>
+    <code id="display2" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+
+  // Bind an event listener to the entire page looking for mouse moves every second
+  //  Calls updateLineChart with new data if some new moves are detected
+  var mouseLocations = [];
+  var tickSize = 700; //in milliseconds
+  var totalTimeWindow = 7; //in seconds
+  var totalTicks = (totalTimeWindow*1000) / tickSize;
+  document.body.addEventListener('mousemove',function(e)
+  {
+    if (mouseLocations.length < 1) {
+
+      mouseLocations.push( {
+        "mouseX": e.clientX,
+        "mouseY": e.clientY,
+        "time": Math.floor(Date.now() / tickSize)
+      } );
+
+      updateLineChart(mouseLocations);
+
+    }
+    else {
+      t = Math.floor(Date.now() / tickSize);
+
+      // Check if we've reached a new second
+      if (mouseLocations[mouseLocations.length-1].time < t) {
+        mouseLocations.push( {
+          "mouseX": e.clientX,
+          "mouseY": e.clientY,
+          "time": t
+        } );
+
+        updateLineChart(mouseLocations);
+        updateFancyLineChart(mouseLocations);
+
+        //Reversing the order here so that we can scroll in items -- the array will always have 1 more than our "max"
+        if (mouseLocations.length > totalTicks) {
+          mouseLocations.shift(); // remove last element added
+        }
+      }
+
+    }
+
+  });
+
+
+
+
+
+
+  // 1. Housekeeping
+  // Get our chart group and chart object
+  let lineSVG = d3.select("svg#linechart");
+  let lineWidth = lineSVG.attr("width");
+  let lineHeight = lineSVG.attr("height");
+  let lineMargin = { top: 10, right: 10, bottom: 50, left:50};
+  let lineChartWidth = lineWidth - lineMargin.left - lineMargin.right;
+  let lineChartHeight = lineHeight - lineMargin.top - lineMargin.bottom;
+
+
+  // 2. Set up some empty scales and axes
+  //      X
+  let xLineScale = d3.scaleLinear().domain([0,totalTicks-1]).range([0, lineChartWidth]);
+  let xLineAxis = d3.axisBottom(xLineScale).ticks(totalTicks-1)  //.tickFormat
+  // Also, let's add some gridlines
+  let xGridlineAxis = d3.axisBottom(xLineScale).ticks(totalTicks-1).tickSize(-lineChartHeight-10).tickFormat("")
+
+  lineSVG.append("g")
+    .attr("class", "x axis")
+    .attr("transform","translate("+lineMargin.left+","+(lineChartHeight + lineMargin.top+10)+")")
+    .call(xLineAxis);
+
+  lineSVG.append("g")
+    .attr("class", "x gridlines")
+    .attr("transform","translate("+lineMargin.left+","+(lineChartHeight + lineMargin.top+10)+")")
+    .call(xGridlineAxis);
+
+  //      Y
+  let yLineScale = d3.scaleLinear().domain( [ 0, window.innerHeight ] ).range([0, lineChartHeight]);
+   // note that we start at 0 because it makes more sense for our mouseY values to start in the upper left corner as opposed to the conventional lower left corner
+  let yLineAxis = d3.axisLeft(yLineScale)  //.tickFormat
+  // Also, let's add some gridlines
+  let yGridlineAxis = d3.axisLeft(yLineScale).tickSize(-lineChartWidth-10).tickFormat("")
+
+  lineSVG.append("g")
+    .attr("class", "y axis")
+    .attr("transform","translate("+(lineMargin.left-10)+","+lineMargin.top+")")
+    .call(yLineAxis);
+
+  lineSVG.append("g")
+    .attr("class", "y gridlines")
+    .attr("transform","translate("+(lineMargin.left-10)+","+lineMargin.top+")")
+    .call(yGridlineAxis);
+
+
+  // 3. Set up d3's line generator
+  //      Need to tell it how to get x and y
+  var line = d3.line()
+                 .x( (d,i) => xLineScale( i ))
+                 .y(  d    => yLineScale( d.mouseY ));
+  // d3.line() returns a *function* that accepts a datapoint and spits out the string that goes in the "d" attribute of a <path>
+
+  // Try adding a smoothing function after .x and .y using .curve(func) : .curve(d3.curveMonotoneX), curveStep, curveBasis, curveCardinal
+
+
+
+
+  // 4. Make a home for the line & the line itself. See how the line generator works
+
+
+  let lineLayer = lineSVG.append("g").attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")")
+
+
+  // BONUS CONTENT: Add a clipping frame so that we can animate the line chart
+  lineLayer.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", lineChartWidth)
+            .attr("height", lineChartHeight);
+
+
+  lineLayer.append("g")
+      .attr("clip-path", "url(#clip)")  // BONUS CONTENT: Apply clipping plane to g holding line
+      .append("path")
+      .attr("class","line")
+      .datum( [] ) // datum is the single form of .data -- it sends the whole list of data to one element instead of .data mapping each row to an element
+        // We need to give d3.line() some .datum to start with, so we provide an empty array
+        //  If you already know what your data look like, you can just give it the whole dataset at this point
+      .attr("d", line);
+      // equivalent to .attr("d", d => line(d)), recall that d3.line() returns a function that takes a datapoint parameter
+
+
+  // 5. Make a home for some circles too!
+  let circLayer = lineSVG.append("g")
+                    .attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")")
+                    .attr("clip-path", "url(#clip)")  // BONUS CONTENT: Apply clipping plane to g holding circles
+
+
+  function updateLineChart(mouseData) {
+    console.log(mouseData);
+
+
+    lineSVG.select(".line")
+      .datum(mouseData)
+      .attr("d", line)
+      .attr("transform","translate("+xLineScale(totalTicks-mouseData.length+1)+",0)") // BONUS CONTENT: Start with the stuff translated to the end of the screen
+                          // Notice we use totalTicks-mouseData.length+1 here instead of 0 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
+      .transition()
+      .ease(d3.easeLinear)
+      .duration(tickSize-50)
+      .attr("transform","translate("+xLineScale(totalTicks-mouseData.length)+",0)"); //  BONUS CONTENT: Apply new transform to scroll stuff into view
+                          // Notice we use totalTicks-mouseData.length here instead of -1 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
+
+
+    // Make some circles
+    let circles = circLayer.selectAll("circle").data(mouseData);   // We want to use .data here because we want one circle per row
+
+    circles.enter().append("circle")
+      .attr("r",4)
+      .style("fill","darkblue")
+      .attr("cx", (d,i) => xLineScale( i ) )
+      .attr("cy", d => yLineScale( d.mouseY ))
+      // Chaining in .merge here adds any of the circles circLayer.selectAll found and let's us run functions on all of them together
+      //  this is good for things you want to UPDATE on existing points and SET for new points
+      .merge(circles)
+      .attr("cx", (d,i) => xLineScale( i ) )
+      .attr("cy", d => yLineScale( d.mouseY ))
+      .attr("transform","translate("+xLineScale(totalTicks-mouseData.length+1)+",0)") // BONUS CONTENT: Start with the stuff translated to the end of the screen
+                          // Notice we use totalTicks-mouseData.length+1 here instead of 0 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
+      .transition()
+      .ease(d3.easeLinear)
+      .duration(tickSize-50)
+      .attr("transform","translate("+xLineScale(totalTicks-mouseData.length)+",0)"); //  BONUS CONTENT: Apply new transform to scroll stuff into view
+                          // Notice we use totalTicks-mouseData.length here instead of -1 because mouseData starts out empty and grows to be totalTicks in size and we want things to smoothly scroll in
+
+    circles.exit().remove();
+
+
+  }
+
+
+  </script>
+
+
+  <script id="notes2">
+
+  // Make a 2d version of our chart
+  let fancylineSVG = d3.select("svg#fancylinechart");
+  let fancylineWidth = fancylineSVG.attr("width");
+  let fancylineHeight = fancylineSVG.attr("height");
+  let fancylineMargin = { top: 10, right: 10, bottom: 50, left:50};
+  let fancylineChartWidth = fancylineWidth - fancylineMargin.left - fancylineMargin.right;
+  let fancylineChartHeight = fancylineHeight - fancylineMargin.top - fancylineMargin.bottom;
+
+
+  let xFancyLineScale = d3.scaleLinear().domain([ 0, window.innerWidth ]).range([0, fancylineChartWidth]);
+  let xFancyLineAxis = d3.axisBottom(xFancyLineScale)
+  // Also, let's add some gridlines
+  let xFancyGridlineAxis = d3.axisBottom(xFancyLineScale).tickSize(-fancylineChartHeight-10).tickFormat("")
+  fancylineSVG.append("g")
+    .attr("class", "x axis")
+    .attr("transform","translate("+fancylineMargin.left+","+(fancylineChartHeight + fancylineMargin.top+10)+")")
+    .call(xFancyLineAxis);
+  fancylineSVG.append("g")
+    .attr("class", "x gridlines")
+    .attr("transform","translate("+fancylineMargin.left+","+(fancylineChartHeight + fancylineMargin.top+10)+")")
+    .call(xFancyGridlineAxis);
+
+  let yFancyLineScale = d3.scaleLinear().domain( [ 0, window.innerHeight ] ).range([0, fancylineChartHeight]);
+   // note that we start at 0 because it makes more sense for our mouseY values to start in the upper left corner as opposed to the conventional lower left corner
+  let yFancyLineAxis = d3.axisLeft(yFancyLineScale)  //.tickFormat
+  // Also, let's add some gridlines
+  let yFancyGridlineAxis = d3.axisLeft(yFancyLineScale).tickSize(-fancylineChartWidth-10).tickFormat("")
+  fancylineSVG.append("g")
+    .attr("class", "y axis")
+    .attr("transform","translate("+(fancylineMargin.left-10)+","+fancylineMargin.top+")")
+    .call(yFancyLineAxis);
+  fancylineSVG.append("g")
+    .attr("class", "y gridlines")
+    .attr("transform","translate("+(fancylineMargin.left-10)+","+fancylineMargin.top+")")
+    .call(yFancyGridlineAxis);
+
+
+  var fancyline = d3.line()
+                 .x(  d    => xFancyLineScale( d.mouseX ))
+                 .y(  d    => yFancyLineScale( d.mouseY ));
+
+
+  let fancylineLayer = fancylineSVG.append("g").attr("transform","translate("+(fancylineMargin.left)+","+fancylineMargin.top+")")
+  fancylineLayer.append("g")
+      .append("path")
+      .attr("id", "fancyline")
+      .attr("class","line")
+      .datum( [] )
+      .attr("d", fancyline);
+
+  let fancycircLayer = fancylineSVG.append("g")
+                    .attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")")
+
+
+  function updateFancyLineChart(mouseData) {
+
+    fancylineSVG.select(".line")
+      .datum(mouseData)
+      .attr("d", fancyline)
+      // If we want to make the line fade, then we have to divide it into segments and fade each individually
+
+    // Make some circles
+    let circles = fancycircLayer.selectAll("circle").data(mouseData);   // We want to use .data here because we want one circle per row
+
+    circles.enter().append("circle")
+      .attr("r",4)
+      .style("fill","darkblue")
+      .merge(circles)
+      .attr("opacity", (d, i) => ((totalTicks - (mouseData.length-i)) / totalTicks)) // Fade as we go back
+      .attr("cx", d => xFancyLineScale( d.mouseX ) )
+      .attr("cy", d => yFancyLineScale( d.mouseY ))
+
+    circles.exit().remove();
+
+
+  }
+
+
+  </script>
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  document.getElementById("display2").innerText = document.getElementById("notes2").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>
