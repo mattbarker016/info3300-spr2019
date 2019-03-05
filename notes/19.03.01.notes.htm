@@ -24,6 +24,11 @@
     fill: none;
   }
 
+  .graticule {
+    fill: none;
+    stroke: white;
+  }
+
   </style>
 
 </head>
@@ -86,6 +91,7 @@
 
     // 2b. Pick out topographic features and build d3 helpers
     var states = topojson.feature(us, us.objects.states);
+    var statesMesh = topojson.mesh(us, us.objects.states);
     var projection = d3.geoAlbersUsa().fitSize([mapWidth, mapHeight], states);
     var path = d3.geoPath().projection(projection);
 
@@ -94,11 +100,11 @@
         .enter()
         .append("path")
         .attr("class","state")
-        .attr("d", path)
-        .attr("note", d => d.id);
+        .attr("d", path);
+        // .attr("note", d => d.id);  // We used this for debugging
 
     map.append("path")
-      .datum(topojson.mesh(us, us.objects.states))
+      .datum(statesMesh)
       .attr("class","outline")
       .attr("d", path);
 
