@@ -98,6 +98,11 @@
   // Call this to update the slope of the regression line
   function updateRegressionLine(line, model) {
     // *** What goes here?
+    //  y=mx+b
+    line.attr("x1",xScale(-3))
+        .attr("x2",xScale(3))
+        .attr("y1",yScale((model.slope*-3) + model.intercept))
+        .attr("y2",yScale((model.slope*3) + model.intercept));
 
   }
 
@@ -106,13 +111,17 @@
 
   // Calculate the difference between predicted y and actual y for all of the points
   function updateResiduals(points, model) {
-  	// *** What goes here?
+  	points.forEach( point => {
+      //y=mx+b
+      let prediction = (point.x * model.slope) + model.intercept
+      point.residual = point.y - prediction;
+    });
 
   }
 
   // Updates the residuals for all points based on the default model
   updateResiduals(points, model);
-
+  console.log(points);
 
   // Create some groups to hold lines showing the residuals
   //  Using visibility to set them all to hidden
@@ -184,14 +193,31 @@
   //                   absoluteError  maxError            squaredError
   d3.select("#squaredLoss").on("click", () => {
     // *** What goes here?
+    residualGroup.attr("visibility","hidden");
+    worstResidualGroup.attr("visibility","hidden");
+    squaredResidualGroup.attr("visibility","visible");
 
+    lossFunction = squaredError;
+    updateModelLabel();
   });
   d3.select("#absoluteLoss").on("click", () => {
     // *** What goes here?
+    residualGroup.attr("visibility","visible");
+    worstResidualGroup.attr("visibility","hidden");
+    squaredResidualGroup.attr("visibility","hidden");
+
+    lossFunction = absoluteError;
+    updateModelLabel();
 
   });
   d3.select("#maxLoss").on("click",  () => {
     // *** What goes here?
+    residualGroup.attr("visibility","hidden");
+    worstResidualGroup.attr("visibility","visible");
+    squaredResidualGroup.attr("visibility","hidden");
+
+    lossFunction = maxError;
+    updateModelLabel();
 
   });
 
@@ -202,14 +228,17 @@
   	console.log(mouseXY);
   	// Figure out where the mouse is in data coordinates
     // Replace these with useful values in data coordinates.
-  	var clickX = 0;
-  	var clickY = 0;
-
+  	var clickX = xScale.invert(mouseXY[0]);
+  	var clickY = yScale.invert(mouseXY[1]);
+    console.log(clickX, clickY);
   	// Calculate a new slope
-  	model.slope = 0; // what is our slope?
+  	model.slope = clickY / clickX;
 
   	// update the errors, text, and model lines
-    //  ???
+    updateRegressionLine(regressionLine, model);
+    updateResiduals(points, model);
+    updateModelLabel();
+    updateResidualPaths(points);
 
   });
 
@@ -217,24 +246,23 @@
 
   // Function to find the point with the worst residual value
   function worstResidual(points) {
-    // *** What goes here?
+
+    let i = d3.scan(points, (a, b) => Math.abs(b.residual) - Math.abs(a.residual) );
+    return [ points[i] ];
 
   }
 
   // Helper functions to compute error values
   function squaredError() {
-    // *** What goes here?
-
+    return d3.sum(points, point => point.residual * point.residual);
   }
 
   function absoluteError () {
-    // *** What goes here?
-
+    return d3.sum(points, point => Math.abs(point.residual));
   }
 
   function maxError () {
-    // *** What goes here?
-
+    return d3.max(points, point => Math.abs(point.residual));
   }
 
 
