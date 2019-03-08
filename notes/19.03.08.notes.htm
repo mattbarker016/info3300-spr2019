@@ -81,7 +81,7 @@
   }
 
   // *** Randomly generate some points
-  var points = generateDataWith(0.0, 0.0, 0.5, 5);
+  var points = generateDataWith(1, 1, 1.9, 20);
   // ***
 
   var model = { intercept: 0, slope: 0 };
@@ -93,14 +93,20 @@
   	if (points.length == 0) { return model; }
 
     // Get some useful data
-
+    let meanX = d3.mean(points, d => d.x);
+    let meanY = d3.mean(points, d => d.y);
 
   	// Use the expression for beta hat from https://en.wikipedia.org/wiki/Simple_linear_regression
-  	model.slope = 0;
-
+  	model.slope = d3.sum(points, d => {
+      return (d.x - meanX) * (d.y - meanY);
+    });
+    model.slope = model.slope / d3.sum(points, d => {
+      return (d.x - meanX) * (d.x - meanX);
+    });
 
     // alpha hat goes here
-  	model.intercept = 0;
+    // (meanX, meanY) always on our line
+  	model.intercept =  meanY - model.slope * meanX;
 
   	return model;
   }
@@ -339,7 +345,16 @@
     // *** Make a dataset
     //  [{slope: stuff, loss: stuff}, ...]
     lossOverSlope = [];
-
+    for (let i = -2; i <= 2; i= i+0.05) {
+      let tmpPoints = []
+      points.forEach( point => {
+        let prediction = i * point.x;
+        tmpPoints.push( {residual: (point.y - prediction) } );
+      });
+      lossOverSlope.push({ slope: i,
+                            loss: lossFunction(tmpPoints) })
+    }
+    console.log(lossOverSlope);
     // Chart it
     xLineScale.domain( d3.extent(lossOverSlope, d => d.slope) );
     yLineScale.domain( d3.extent(lossOverSlope, d => d.loss) );
@@ -348,7 +363,7 @@
     line.datum(lossOverSlope).attr("d",lineGen);
 
     // *** Approximate the minimum
-    let minPt = {};
+    let minPt = lossOverSlope[ d3.scan(lossOverSlope, (a, b) => Math.abs(a.loss) - Math.abs(b.loss) ) ];
 
     marker.attr("x1",xLineScale(minPt.slope)).attr("x2",xLineScale(minPt.slope)).attr("y1",30).attr("y2",lineChartHeight);
     txt.attr("x",xLineScale(minPt.slope)).text(d3.format(".2g")(minPt.slope));
@@ -398,6 +413,22 @@
 
 
 
+
+  </script>
+
+
+  <script>
+  //
+  // let fbi = await d3.tsv("fbi.txt");
+  //
+  // function parseRow(row) {
+  //
+  //   row.x = Number(row["Population"]) / 1000;
+  //   row.y = Number(row["Destruction/Damage/Vandalism"]);
+  //   row.name = row["State"];
+  //
+  //   return row;
+  // }
 
   </script>
 
