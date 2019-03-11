@@ -157,7 +157,7 @@
     //const colorScale = d3.scaleSequential(d3.interpolateGnBu).domain(minMax);
     const colorScale = d3.scaleQuantile()
                           .domain(d3.values(stateCounts))
-                          .range(["#fff","#f6fbfc","#adc2da","#8879b3","#762b80"]);
+                          .range(["#f6fbfc","#adc2da","#8879b3","#762b80"]);
     // const colorScale = d3.scaleQuantize()
     //                       .domain(minMax)
     //                       .range(["#f6fbfc","#adc2da","#8879b3","#762b80"]);
