@@ -1,5 +1,5 @@
 <html><head>
-<title>INFO 3300 - March 11 - Pt. 1</title>
+<title>INFO 3300 - March 11 - Pt. 1.</title>
 
   <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
 
@@ -16,6 +16,7 @@
   .state {
     fill: lightgrey;
     stroke: none;
+
   }
 
   .outline {
@@ -168,6 +169,43 @@
 
 
     // 4. MARCH 11 -- Let's add a mouseover tooltip
+    var roundNumber = d3.format(".5g");
+    var tooltip = d3.select("body").append("div")
+                      .attr("id", "tooltip")
+                      .attr("class", "tooltip")
+                      .style("opacity", 0);
+    var tooltipWidth = parseFloat(tooltip.style("width"));
+    var tooltipHeight = parseFloat(tooltip.style("height"));
+
+    d3.selectAll(".state").on("mousemove", mouseOnPlot);
+    d3.selectAll(".state").on("mouseout", mouseLeavesPlot);
+
+    function mouseOnPlot() {
+      // Move the tooltip
+      console.log(event);
+      tooltip.style("left", event.pageX - (tooltipWidth/2.0));
+      tooltip.style("top", event.pageY - tooltipHeight - 24);
+
+      // Clear whatever is there
+      tooltip.html("");
+
+      // Give the tooltip a state label
+      let state = d3.select(this);
+      tooltip.append("div").text(idToState[state.attr("ident")]);
+
+      // Give the tooltip a lat/lng
+      let posOnChart = d3.mouse(svg.node());
+      console.log(posOnChart);
+      let geoPos = projection.invert(posOnChart);
+      console.log(geoPos);
+      tooltip.append("div").text("("+roundNumber(geoPos[1])+","+roundNumber(geoPos[0])+")")
+
+      // Show the tooltip!
+      tooltip.style("opacity",1);
+    }
+    function mouseLeavesPlot() {
+      tooltip.style("opacity",0);
+    }
 
 
 

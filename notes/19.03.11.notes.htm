@@ -26,7 +26,7 @@
     Check out a <a href="http://seismo.berkeley.edu/~kirchner/eps_120/Toolkits/Toolkit_10.pdf">helpful guide</a> to the derivations behind simple linear regression.
   </p>
   <p>
-    See how low you can get the loss function for this multiple regression! The lowest I can manage is about 83k. If you get lower, share your coefficients on Campuswire.
+    See how low you can get the loss function for this multiple regression! The lowest I can manage is about 66k. If you get lower, share your coefficients on Campuswire.
   </p>
 
 
@@ -55,7 +55,7 @@
   const requestData = async () => {
 
   // Helpers
-  var roundNumber = d3.format(".3g");
+  var roundNumber = d3.format(".5g");
 
   //Storage for our dataset
   var points = [];
@@ -109,7 +109,7 @@
   let height = 430;
   let width = 430;
   let svg = d3.select("#plot").append("svg").attr("width",width).attr("height",height);
-  let margin = { top: 10, right: 10, bottom: 40, left:40};
+  let margin = { top: 10, right: 10, bottom: 50, left:50};
   let chartWidth = width - margin.left - margin.right;
   let chartHeight = height - margin.top - margin.bottom;
 
@@ -122,7 +122,7 @@
     .attr("class", "x axis")
     .attr("transform","translate("+margin.left+","+(chartHeight + margin.top+5)+")")
     .call(xAxis);
-  svg.append("text").attr("x", width / 2).attr("y", height + 35).text("Predicted PISA");
+  svg.append("text").attr("x", chartWidth / 2).attr("y", chartHeight+50).text("Predicted PISA");
 
   let yScale = d3.scaleLinear().domain(extent).range([chartHeight, 0]);
   let yAxis = d3.axisLeft(yScale);
@@ -130,8 +130,8 @@
     .attr("class", "y axis")
     .attr("transform","translate("+(margin.left-5)+","+margin.top+")")
     .call(yAxis);
-  svg.append("text").attr("transform", "rotate(270)")
-    .attr("x", -width / 2).attr("y", -25).text("Actual PISA");
+  svg.append("text").attr("transform", "rotate(90)")
+    .attr("x", chartHeight/2).attr("y", 0).text("Actual PISA");
 
   // Add a line to indicate perfect results (identity function)
   var chart = svg.append("g").attr("transform","translate("+margin.left+","+margin.top+")");
@@ -170,27 +170,43 @@
 
   // Construct our dataset by merging all of these files together
   //   Verify that the nest commands are all working
-  const gdp       = d3.nest().key(function (d) { return d.Country; }).map(raw_gdp);
-  const education = d3.nest().key(function (d) { return d.Country; }).map(raw_education);
-  const gini      = d3.nest().key(function (d) { return d.Country; }).map(raw_gini);
-  const hdi       = d3.nest().key(function (d) { return d.Country; }).map(raw_hdi);
+  const gdp       = d3.nest().key(function (d) { return d.Country.trim(); }).map(raw_gdp);
+  const education = d3.nest().key(function (d) { return d.Country.trim(); }).map(raw_education);
+  const gini      = d3.nest().key(function (d) { return d.Country.trim(); }).map(raw_gini);
+  const hdi       = d3.nest().key(function (d) { return d.Country.trim(); }).map(raw_hdi);
+
+
+  // POST_LECTURE - Adding a blacklist for some countries we know have bad data
+  //   Also removing outliers -- tiny nations -- due to linear regression assumptions
+  let blacklist = ["Singapore","Hong Kong","Malta","United Arab Emirates","Montenegro","Lebanon"];
 
   raw_pisa.forEach(function (d) {
-    let countryName = d.Country;
-    // We'll wrap this in a try block in case our data processing tasks fail
-    try {
-        d["PISA"] = d["PISA"]; // For clarity
-        d["Income"] = gdp.get(countryName)[0]["GDP"];
-        d["EduSpend"] = education.get(countryName)[0]["Education"];
-        d["Inequality"] = gini.get(countryName)[0]["WBGini"];
-        d["HDI"] = hdi.get(countryName)[0]["HDI"];
+    let countryName = d.Country.trim();
 
-        // Only add the point if we make it all the way to the end
-        points.push(d);
-    }
-    catch (error) {
-      console.log("problem with '" + countryName + "'");
-      console.log(error);
+    // POST_LECTURE - Skip blacklisted rows
+    // indexOf returns -1 if not in array
+    if (blacklist.indexOf(countryName) === -1) {
+
+      // We'll wrap this in a try block in case our data processing tasks fail
+      try {
+          d["PISA"] = parseFloat(d["PISA"]); // For clarity
+          // POST_LECTURE - Wrapping Income in a log because some high GDP countries skew results
+          //  This breaks regression's assumption of normality
+          //  You can tell this is happening because only a few points move when you adjust Income slider
+          d["Income"] = Math.log( parseFloat(gdp.get(countryName)[0]["GDP"].replace(/,/g,"")) );
+          d["EduSpend"] = parseFloat(education.get(countryName)[0]["Education"]);
+          d["Inequality"] = parseFloat(gini.get(countryName)[0]["WBGini"]);
+          d["HDI"] = parseFloat(hdi.get(countryName)[0]["HDI"]);
+          console.log(d);
+
+          // Only add the point if we make it all the way to the end
+          points.push(d);
+      }
+      catch (error) {
+        console.log("problem with '" + countryName + "'");
+        console.log(error);
+      }
+
     }
   });
   console.log(points);
@@ -265,6 +281,7 @@
           .text(d.Country);
       })
       .merge(circles) // Bring in ones that already exist
+      .attr("country", d => d.Country)
       .attr("cx", function (d) { return xScale(d["prediction"]); })
       .attr("cy", function (d) { return yScale(d[predictedVariable]); });
 
