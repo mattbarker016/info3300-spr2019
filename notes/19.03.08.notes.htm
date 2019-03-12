@@ -1,0 +1,448 @@
+<html><head>
+<title>INFO 3300 - March 8</title>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <style>
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for March 8</h3>
+  <p>What does the least-squares algorithm do? How do model parameters have on the quality of our estimates</p>
+  <p>Project 2 has been released. Check out your project group and mentors on Campuswire. HW5 due on Tuesday.</p>
+  <p>Check out 538's <a href="https://fivethirtyeight.com/features/science-isnt-broken/#part1">article on science trustworthiness</a>.</p>
+  <p>
+    Recall some assumptions made when doing a linear regression:
+  </p>
+  <ul>
+    <li>The mean of the response, 𝐸(𝑌𝑖), at each set of values of the predictors, (𝑥1𝑖,𝑥2𝑖,…), is a Linear function of the predictors.</li>
+    <li>The errors, ε𝑖, are Independent.</li>
+    <li>The errors, ε𝑖, at each set of values of the predictors, (𝑥1𝑖,𝑥2𝑖,…), are Normally distributed.</li>
+    <li>The errors, ε𝑖, at each set of values of the predictors, (𝑥1𝑖,𝑥2𝑖,…), have Equal variances (see <a href="http://www.statsmakemecry.com/smmctheblog/confusing-stats-terms-explained-heteroscedasticity-heteroske.html">heteroscedasticity</a>)</li>
+  </ul>
+
+  <h5>HTML for today:</h5>
+
+  <div id="buttons">
+  	<button id="squaredLoss">Squared Loss</button>
+  	<button id="absoluteLoss">Absolute Loss</button>
+  	<button id="maxLoss">Max Loss</button>
+  </div>
+  <div id="plotContainer">
+    <svg width=500 height=400 id="plot"></svg>
+    <svg width=300 height=300 id="residualPlot"></svg>
+  </div>
+
+  <div id="lsqContainer">
+    <svg width=500 height=500 id="lsqPlot" style="background: darkgrey; margin-top: 40px"></svg>
+  </div>
+
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+
+
+
+  <script id="notes1">
+
+  var roundNumber = d3.format(".5g");
+  var normalGenerator = d3.randomNormal();
+
+  function generateDataWith(intercept, slope, noise, n) {
+  	var points = [];
+
+  	for (var i = 0; i < n; i++) {
+  		var x = normalGenerator();
+  		// Fill in the noisy y value
+  		var y = x * slope + intercept +    // perfect data for the expected model
+  			      noise * normalGenerator(); // now with added noise
+  		points.push({ x: x, y: y });
+  	}
+
+  	return points;
+  }
+
+  // *** Randomly generate some points
+  var points = generateDataWith(0, 0.5, 0.5, 20);
+  // ***
+
+  var model = { intercept: 0, slope: 0 };
+
+
+  // *** Calculate the optimal slope and intercept.
+  function leastSquares(points) {
+  	model = { intercept: 0, slope: 0 }; // zero the model
+  	if (points.length == 0) { return model; }
+
+    // Get some useful data
+    let meanX = d3.mean(points, d => d.x);
+    let meanY = d3.mean(points, d => d.y);
+
+  	// Use the expression for beta hat from https://en.wikipedia.org/wiki/Simple_linear_regression
+  	model.slope = d3.sum(points, d => {
+      return (d.x - meanX) * (d.y - meanY);
+    });
+    model.slope = model.slope / d3.sum(points, d => {
+      return (d.x - meanX) * (d.x - meanX);
+    });
+
+    // alpha hat goes here
+    // (meanX, meanY) always on our line
+  	model.intercept =  meanY - model.slope * meanX;
+
+  	return model;
+  }
+
+  // Run leastSquares and compute residuals
+  model = leastSquares(points);
+	points.forEach( point => {
+    let prediction = (point.x * model.slope) + model.intercept
+    point.residual = point.y - prediction;
+  });
+
+  // *** Calculate goodness of fit
+  function rSquared(points) {
+    // Use the expression for r2 from https://en.wikipedia.org/wiki/Coefficient_of_determination
+
+    let meanY = d3.mean(points, d => d.y)
+    let totalSS = d3.sum(points, d => (d.y - meanY) * (d.y - meanY));
+    let residualSS = d3.sum(points, d => d.residual * d.residual);
+
+    return 1 - (residualSS / totalSS);
+  }
+
+
+
+  // See notes from Wednesday
+  let svg = d3.select("#lsqPlot");
+  let width = svg.attr("width");
+  let height = svg.attr("height");
+
+  let xScale = d3.scaleLinear().domain([-3, 3]).range([0, width]);  // hardcoded for the demo
+  let yScale = d3.scaleLinear().domain([-3, 3]).range([height, 0]); // hardcoded for the demo
+
+  svg.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(0))
+    .attr("x2", xScale(0))
+    .attr("y1", yScale(-3))
+    .attr("y2", yScale(3))
+  svg.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(-3))
+    .attr("x2", xScale(3))
+    .attr("y1", yScale(0))
+    .attr("y2", yScale(0))
+  let residualGroup = svg.append("g")  // No padding
+                            .attr("id","residualGroup")
+  let circles = svg.selectAll("circle").data(points).enter()
+    .append("circle")
+    .attr("cx", d => xScale(d.x) )
+    .attr("cy", d => yScale(d.y) )
+    .attr("r", 7)
+    .attr("fill","white");
+  let regressionLine = svg.append("line")
+        .attr("class", "estimated")
+        .attr("stroke", "#e41a1c")
+        .attr("stroke-width",2)
+        .attr("x1",xScale(-3))
+        .attr("x2",xScale(3))
+        .attr("y1",yScale((model.slope*-3) + model.intercept))
+        .attr("y2",yScale((model.slope*3) + model.intercept));
+
+  let residuals = residualGroup.selectAll("path.residual")
+                                    .data(points);
+  residuals.exit().remove();
+  residuals.enter().append("path")
+        .attr("class", "residual")
+        .style("stroke", "#2e61c4")
+        .style("stroke-width", "2px")
+        .merge(residuals) // Merge in previous paths
+        .attr("d", residualLine); // Path generator for vertical residual lines
+
+  var modelText = svg.append("text")
+    .attr("id", "status")
+    .attr("x", 10).attr("y", 30)
+    .text("y = " + roundNumber(model.slope) + " * x + " + roundNumber(model.intercept) +
+                  " -- Loss: " + roundNumber(squaredError(points)) +
+                  " -- r^2: " + roundNumber(rSquared(points)));
+
+
+
+  // Here is an augmented version of the clickable chart from last week, this time with random data!
+  // This will let us play with residuals again
+  // NOTE: See bottom for the new code for charting different slopes
+
+  let clickablePoints = copy(points); // needs to be a deep copy because we modify objects inside array
+  let lossFunction = squaredError;
+
+  let clickSVG = d3.select("#plot");
+  let clickWidth = clickSVG.attr("width");
+  let clickHeight = clickSVG.attr("height");
+
+  // Use the scales from the previous bit of code!
+
+  // Our regression model
+  let clickableModel = { intercept: 0, slope: 0 };
+  clickSVG.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(0))
+    .attr("x2", xScale(0))
+    .attr("y1", yScale(-3))
+    .attr("y2", yScale(3))
+  clickSVG.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(-3))
+    .attr("x2", xScale(3))
+    .attr("y1", yScale(0))
+    .attr("y2", yScale(0))
+  let clickResidualGroup = clickSVG.append("g")  // No padding
+                            .attr("id","residualGroup");
+  clickSVG.selectAll("circle").data(points).enter()
+    .append("circle")
+    .attr("cx", d => xScale(d.x) )
+    .attr("cy", d => yScale(d.y) )
+    .attr("r", 7);
+
+  let clickRegressionLine = clickSVG.append("line")
+        .attr("class", "estimated")
+        .style("stroke", "#e41a1c");
+  function updateClickRegressionLine(line, model) {
+    line.attr("x1",xScale(-3))
+        .attr("x2",xScale(3))
+        .attr("y1",yScale((model.slope*-3) + model.intercept))
+        .attr("y2",yScale((model.slope*3) + model.intercept));
+
+  }
+  updateClickRegressionLine(clickRegressionLine, clickableModel);
+
+  function updateClickResiduals(points, model) {
+  	points.forEach( point => {
+      //y=mx+b
+      let prediction = (point.x * model.slope) + model.intercept
+      point.residual = point.y - prediction;
+    });
+
+  }
+
+  updateClickResiduals(points, clickableModel);
+
+  function updateClickResidualPaths(points) {
+    let residuals = clickResidualGroup.selectAll("path.residual")
+                                      .data(points);
+    residuals.exit().remove();
+    residuals.enter().append("path")
+          .attr("class", "residual")
+          .style("stroke", "#2e61c4")
+          .style("stroke-width", "2px")
+          .merge(residuals) // Merge in previous paths
+          .attr("d", residualLine); // Path generator for vertical residual lines
+  }
+
+  updateClickResidualPaths(points);
+
+  var clickModelText = clickSVG.append("text")
+    .attr("id", "status")
+    .attr("x", 10).attr("y", 30)
+  function updateClickModelLabel(points) {
+    clickModelText.text("Slope: " + roundNumber(clickableModel.slope) +
+                   " -- Loss: " + roundNumber(lossFunction(points)) +
+                   " -- Loss Function: " + lossFunction.name);   // WARNING, may not be IE/Opera compatible;
+  }
+  updateClickModelLabel(clickablePoints);
+
+  d3.select("#squaredLoss").on("click", () => {
+    lossFunction = squaredError;
+    updateClickModelLabel(clickablePoints);
+    updateLineChart(clickablePoints);
+  });
+  d3.select("#absoluteLoss").on("click", () => {
+    lossFunction = absoluteError;
+    updateClickModelLabel(clickablePoints);
+    updateLineChart(clickablePoints);
+  });
+  d3.select("#maxLoss").on("click",  () => {
+    lossFunction = maxError;
+    updateClickModelLabel(clickablePoints);
+    updateLineChart(clickablePoints);
+  });
+
+  clickSVG.on("click", function() {
+  	var mouseXY = d3.mouse(this);
+
+  	console.log(mouseXY);
+  	// Figure out where the mouse is in data coordinates
+    // Replace these with useful values in data coordinates.
+  	var clickX = xScale.invert(mouseXY[0]);
+  	var clickY = yScale.invert(mouseXY[1]);
+    console.log(clickX, clickY);
+  	// Calculate a new slope
+  	clickableModel.slope = clickY / clickX;
+
+  	// update the errors, text, and model lines
+    updateClickRegressionLine(clickRegressionLine, clickableModel);
+    updateClickResiduals(clickablePoints, clickableModel);
+    updateClickModelLabel(clickablePoints);
+    updateClickResidualPaths(clickablePoints);
+
+  });
+
+
+
+
+
+  // *** Fancy line chart for total squared error over different slopes
+  // We can use this to approximate the "best" slope for intercept 0
+
+  let lineSVG = d3.select("svg#residualPlot");
+  let lineWidth = lineSVG.attr("width");
+  let lineHeight = lineSVG.attr("height");
+  let lineMargin = { top: 10, right: 10, bottom: 40, left:40};
+  let lineChartWidth = lineWidth - lineMargin.left - lineMargin.right;
+  let lineChartHeight = lineHeight - lineMargin.top - lineMargin.bottom;
+
+  // Hardcode domain for our range of slopes
+  let xLineScale = d3.scaleLinear().range([0, lineChartWidth]);
+  let xLineAxis = d3.axisBottom(xLineScale)
+  lineSVG.append("g")
+    .attr("class", "x axis")
+    .attr("transform","translate("+lineMargin.left+","+(lineChartHeight + lineMargin.top+5)+")")
+    .call(xLineAxis);
+  // Leave domain empty until we pick a loss function
+  let yLineScale = d3.scaleLinear().range([lineChartHeight, 0]);
+  let yLineAxis = d3.axisLeft(yLineScale)
+  lineSVG.append("g")
+    .attr("class", "y axis")
+    .attr("transform","translate("+(lineMargin.left-5)+","+lineMargin.top+")")
+    .call(yLineAxis);
+
+  var lineGen = d3.line()
+                 .x(  d  => xLineScale( d.slope ))
+                 .y(  d  => yLineScale( d.loss ))
+  let lineLayer = lineSVG.append("g").attr("transform","translate("+(lineMargin.left)+","+lineMargin.top+")");
+  let marker = lineLayer.append("line").attr("stroke","teal").attr("stroke-dasharray",4);
+  let txt = lineLayer.append("text").attr("text-anchor","middle").attr("y",20);
+  let line = lineLayer.append("path").attr("stroke","blue").attr("stroke-width",2).attr("fill","none");
+
+
+  // Create a dataset for the line chart to use
+  function updateLineChart(points) {
+
+    // *** Make a dataset
+    //  [{slope: stuff, loss: stuff}, ...]
+    lossOverSlope = [];
+    for (let i = -2; i <= 2; i= i+0.05) {
+      let tmpPoints = []
+      points.forEach( point => {
+        let prediction = i * point.x;
+        tmpPoints.push( {residual: (point.y - prediction) } );
+      });
+      lossOverSlope.push({ slope: i,
+                            loss: lossFunction(tmpPoints) })
+    }
+    console.log(lossOverSlope);
+    // Chart it
+    xLineScale.domain( d3.extent(lossOverSlope, d => d.slope) );
+    yLineScale.domain( d3.extent(lossOverSlope, d => d.loss) );
+    lineSVG.select(".x").call(xLineAxis);
+    lineSVG.select(".y").call(yLineAxis);
+    line.datum(lossOverSlope).attr("d",lineGen);
+
+    // *** Approximate the minimum
+    let minPt = lossOverSlope[ d3.scan(lossOverSlope, (a, b) => Math.abs(a.loss) - Math.abs(b.loss) ) ];
+
+    marker.attr("x1",xLineScale(minPt.slope)).attr("x2",xLineScale(minPt.slope)).attr("y1",30).attr("y2",lineChartHeight);
+    txt.attr("x",xLineScale(minPt.slope)).text(d3.format(".2g")(minPt.slope));
+
+  }
+
+  updateLineChart(clickablePoints)
+
+
+
+
+
+  // Function to find the point with the worst residual value
+  function worstResidual (points) {
+    let i = d3.scan(points, (a, b) => Math.abs(b.residual) - Math.abs(a.residual) );
+    return [ points[i] ];
+  }
+  // Helper functions to compute error values
+  function squaredError (points) {
+    return d3.sum(points, point => point.residual * point.residual);
+  }
+  function absoluteError (points) {
+    return d3.sum(points, point => Math.abs(point.residual));
+  }
+  function maxError (points) {
+    return d3.max(points, point => Math.abs(point.residual));
+  }
+
+  // Helper function to generate vertical line from point to slope using residuals
+  function residualLine(point) {
+  	// Return the path "d" string for a line from the
+  	//  point to its predicted value
+  	return "M" + xScale(point.x) + "," + yScale(point.y) +
+  	" L" + xScale(point.x) + "," + yScale(point.y - point.residual);
+  }
+
+  // deep copy function care of https://www.codementor.io/avijitgupta/deep-copying-in-js-7x6q8vh5d
+  function copy(o) {
+    var output, v, key;
+    output = Array.isArray(o) ? [] : {};
+    for (key in o) {
+      v = o[key];
+      output[key] = (typeof v === "object") ? copy(v) : v;
+    }
+    return output;
+  }
+
+
+
+
+  </script>
+
+
+  <script>
+  //
+  // let fbi = await d3.tsv("fbi.txt");
+  //
+  // function parseRow(row) {
+  //
+  //   row.x = Number(row["Population"]) / 1000;
+  //   row.y = Number(row["Destruction/Damage/Vandalism"]);
+  //   row.name = row["State"];
+  //
+  //   return row;
+  // }
+
+  </script>
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>

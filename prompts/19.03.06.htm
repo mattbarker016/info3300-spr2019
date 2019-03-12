@@ -1,0 +1,278 @@
+<html><head>
+<title>INFO 3300 - March 6</title>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <style>
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for March 6</h3>
+  <p>What is a model, and why is it useful? How do we evaluate the trustworthiness of a model?</p>
+  <p>
+    This week we are going to check out linear models. When is a linear model most applicable, and how do we construct one?</p>
+  <p>
+    Let's also take a moment to revisit <a href="https://en.wikipedia.org/wiki/Anscombe%27s_quartet">Anscombe's quartet</a> (<a href="https://en.wikipedia.org/wiki/Anscombe%27s_quartet#/media/File:Anscombe%27s_quartet_3.svg">image here</a>)...<br/>
+    Here are some assumptions made when doing a linear regression. What do they mean?
+  </p>
+  <ul>
+    <li>The mean of the response, 𝐸(𝑌𝑖), at each set of values of the predictors, (𝑥1𝑖,𝑥2𝑖,…), is a Linear function of the predictors.</li>
+    <li>The errors, ε𝑖, are Independent.</li>
+    <li>The errors, ε𝑖, at each set of values of the predictors, (𝑥1𝑖,𝑥2𝑖,…), are Normally distributed.</li>
+    <li>The errors, ε𝑖, at each set of values of the predictors, (𝑥1𝑖,𝑥2𝑖,…), have Equal variances (see <a href="http://www.statsmakemecry.com/smmctheblog/confusing-stats-terms-explained-heteroscedasticity-heteroske.html">heteroscedasticity</a>)</li>
+  </ul>
+
+  <h5>HTML for today:</h5>
+
+  <div id="buttons">
+  	<button id="squaredLoss">Squared Loss</button>
+  	<button id="absoluteLoss">Absolute Loss</button>
+  	<button id="maxLoss">Max Loss</button>
+  </div>
+
+  <div id="plotContainer">
+    <svg width=500 height=500 id="plot"></svg>
+  </div>
+
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+  var points = [{"x":-1.2330973279191326,"y":-0.6994248342294702},{"x":1.7996387667207998,"y":1.1725462227268648},{"x":-1.3395548786759093,"y":-0.6176675455342835},{"x":-0.5800165358802124,"y":-0.7645341704142388},{"x":-2.3384514729522388,"y":-0.9678576437556518},{"x":-0.09651836507608529,"y":0.2987814878084641},{"x":-0.43080032781660527,"y":-0.45276217737047897},{"x":-2.198133135472373,"y":-1.002058273530259},{"x":-1.1146222404003339,"y":-0.536029602728414},{"x":-1.0686123793105093,"y":-0.5487531128780339}];
+
+  let svg = d3.select("#plot");
+  let width = svg.attr("width");
+  let height = svg.attr("height");
+
+  let xScale = d3.scaleLinear().domain([-3, 3]).range([0, width]);  // hardcoded for the demo
+  let yScale = d3.scaleLinear().domain([-3, 3]).range([height, 0]); // hardcoded for the demo
+
+  // Our regression model
+  let model = { intercept: 0, slope: 0 };
+
+
+  // Draw circles and light lines for x=0 and y=0
+  svg.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(0))
+    .attr("x2", xScale(0))
+    .attr("y1", yScale(-3))
+    .attr("y2", yScale(3))
+  svg.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(-3))
+    .attr("x2", xScale(3))
+    .attr("y1", yScale(0))
+    .attr("y2", yScale(0))
+
+  let circles = svg.selectAll("circle").data(points).enter()
+    .append("circle")
+    .attr("cx", d => xScale(d.x) )
+    .attr("cy", d => yScale(d.y) )
+    .attr("r", 5)
+    .style("opacity", 0.7);
+
+
+  // Set up line, need to call updateRegressionLine to finish it
+  let regressionLine = svg.append("line")
+        .attr("class", "estimated")
+        .style("stroke", "#e41a1c");
+
+  // Call this to update the slope of the regression line
+  function updateRegressionLine(line, model) {
+    // *** What goes here?
+
+  }
+
+  updateRegressionLine(regressionLine, model);
+
+
+  // Calculate the difference between predicted y and actual y for all of the points
+  function updateResiduals(points, model) {
+  	// *** What goes here?
+
+  }
+
+  // Updates the residuals for all points based on the default model
+  updateResiduals(points, model);
+
+
+  // Create some groups to hold lines showing the residuals
+  //  Using visibility to set them all to hidden
+  let residualGroup = svg.append("g")  // No padding
+                            .attr("id","residualGroup")
+                            .attr("visibility","hidden"); //default
+  let worstResidualGroup = svg.append("g")
+                            .attr("id","worstResidualGroup")
+                            .attr("visibility","hidden");
+  let squaredResidualGroup = svg.append("g")
+                            .attr("id","squaredResidualGroup")
+                            .attr("visibility","hidden");
+
+  // Updates the visuals showing residuals (whether group is hidden or not)
+  function updateResidualPaths(points) {
+    let residuals = residualGroup.selectAll("path.residual")
+                                      .data(points);
+    residuals.exit().remove();
+    residuals.enter().append("path")
+          .attr("class", "residual")
+          .style("stroke", "#2e61c4")
+          .style("stroke-width", "2px")
+          .merge(residuals) // Merge in previous paths
+          .attr("d", residualLine); // Path generator for vertical residual lines
+
+    let maxResidual = worstResidualGroup.selectAll("path.maxresidual")
+                                      .data(worstResidual(points));
+    maxResidual.exit().remove();
+    maxResidual.enter().append("path")
+          .attr("class", "maxresidual")
+          .style("stroke", "#e79d2f")
+          .style("stroke-width", "5px")
+          .merge(maxResidual)
+          .attr("d", residualLine);
+
+    let squaredResiduals = squaredResidualGroup.selectAll("path.square")
+                                      .data(points);
+    squaredResiduals.exit().remove();
+    squaredResiduals.enter().append("path")
+          .attr("class", "square")
+          .style("opacity", 0.2)
+          .style("fill", "#639bee")
+          .style("stroke", "#517fc4")
+          .merge(squaredResiduals)
+          .attr("d", residualSquare);
+  }
+
+  // Update them once for the default model
+  updateResidualPaths(points);
+
+
+
+  let lossFunction = () => 0; // default loss function just returns a 0
+
+  var roundNumber = d3.format(".5g");
+
+  var modelText = svg.append("text")
+    .attr("id", "status")
+    .attr("x", 10).attr("y", 30)
+
+  function updateModelLabel() {
+    modelText.text("Slope: " + roundNumber(model.slope) +
+                   " -- Loss: " + roundNumber(lossFunction()) +
+                   " -- Loss Function: " + lossFunction.name);   // WARNING, may not be IE/Opera compatible
+  }
+
+  // Our buttons
+  //   for copy-paste: residualGroup  worstResidualGroup  squaredResidualGroup
+  //                   absoluteError  maxError            squaredError
+  d3.select("#squaredLoss").on("click", () => {
+    // *** What goes here?
+
+  });
+  d3.select("#absoluteLoss").on("click", () => {
+    // *** What goes here?
+
+  });
+  d3.select("#maxLoss").on("click",  () => {
+    // *** What goes here?
+
+  });
+
+
+  svg.on("click", function() {
+  	var mouseXY = d3.mouse(this);
+
+  	console.log(mouseXY);
+  	// Figure out where the mouse is in data coordinates
+    // Replace these with useful values in data coordinates.
+  	var clickX = 0;
+  	var clickY = 0;
+
+  	// Calculate a new slope
+  	model.slope = 0; // what is our slope?
+
+  	// update the errors, text, and model lines
+    //  ???
+
+  });
+
+
+
+  // Function to find the point with the worst residual value
+  function worstResidual(points) {
+    // *** What goes here?
+
+  }
+
+  // Helper functions to compute error values
+  function squaredError() {
+    // *** What goes here?
+
+  }
+
+  function absoluteError () {
+    // *** What goes here?
+
+  }
+
+  function maxError () {
+    // *** What goes here?
+
+  }
+
+
+
+
+  // Helper function to generate vertical line from point to slope using residuals
+  function residualLine(point) {
+  	// Return the path "d" string for a line from the
+  	//  point to its predicted value
+  	return "M" + xScale(point.x) + "," + yScale(point.y) +
+  	" L" + xScale(point.x) + "," + yScale(point.y - point.residual);
+  }
+
+  // Helper function to generate a square from point to slope using residuals
+  function residualSquare(point) {
+  	// Return the path "d" string for a square
+  	return "M" + xScale(point.x) + "," + yScale(point.y) +
+  		" L" + xScale(point.residual + point.x) + "," + yScale(point.y) +
+  		" L" + xScale(point.residual + point.x) + "," + yScale(point.y - point.residual) +
+  		" L" + xScale(point.x) + "," + yScale(point.y - point.residual) +
+  		"Z";
+  }
+
+
+
+  </script>
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>
