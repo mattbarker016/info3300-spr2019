@@ -1,0 +1,223 @@
+<html><head>
+<title>INFO 3300 - March 13</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <style>
+
+  .outline {
+    stroke: gainsboro;
+    stroke-width: 1px;
+    fill: none;
+  }
+
+  circle {
+    fill: darkgrey;
+    stroke-width: 1px;
+  }
+
+  .area {
+    stroke: royalblue;
+    fill: skyblue;
+    stroke-width: 2px;
+  }
+
+  #map {
+    width: 600px;
+    height: 500px;
+    float: left;
+  }
+  #controls {
+    width:300px;
+    height:500px;
+    float:right;
+  }
+
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Notes for March 13</h3>
+  <p> Check out the original paper on <a href="http://www.cs.umd.edu/hcil/trs/92-01/92-01.html">Dynamic HomeFinder</a>. A <a href="https://youtu.be/5X8XY9430fM">1993 video</a> shows its dynamic queries in action. </p>
+  <p> If you want to try Dynamic Homefinder, you can download a version for MSDOS <a href="http://hcil.umd.edu/products/">here</a>. Use DOS simulator like DOSBox or Boxer to run it. </p>
+  <h5>HTML for today:</h5>
+
+  <div id="panel">
+    <div id="map">
+      <svg id="map_canvas" height="490" width="600" style="background: #fff;" ></svg>
+    </div>
+    <div id="controls">
+    </div>
+  </div>
+  <div>
+    <table id="places">
+    </table>
+  </div>
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+  <script id="notes1">
+
+  const requestData = async () => {
+
+  // Data originally in GeoJSON form on the WPRDC (https://data.wprdc.org/dataset/neighborhoods1)
+  //  Converted to topoJSON, which reduced file size from 1.3mB to 250kB.
+  const pgh = await d3.json("../datasets/pittsburgh_neighborhoods.json");
+  console.log(pgh);
+
+  var map = d3.select("#map_canvas");
+  var mapWidth = map.attr("width");
+  var mapHeight = map.attr("height");
+
+  // Draw a mesh so we have a background for our house locations
+  var pghMesh = topojson.mesh(pgh, pgh.objects.Neighborhoods_);
+  var projection = d3.geoMercator().fitSize([mapWidth, mapHeight], pghMesh);
+  var path = d3.geoPath().projection(projection);
+
+  map.append("path")
+    .datum(pghMesh)
+    .attr("class","outline")
+    .attr("d", path);
+
+
+  // Load data file and draw some circles using a data join
+  //  This time we are using a new d3 capability, a _row conversion function_
+  //  We feed in d3.autoType, a helper conversion function that handles simple
+  //   things like dates, numbers, etc. It panics often and reverts to string
+  //   if things do not convert easily, so there is still cleanup
+  const houses = await d3.csv("../datasets/pgh_homes.csv", d3.autoType);
+
+  // Cleanup
+  houses.forEach( d => {
+    // The plus here does a simple number conversion (doesn't handle things like "px")
+    d["Sale Price"] = +d["Sale Price"].replace(/[,\$]/g,"").trim();
+    // While we're at it, get position using the projection
+    d["position"] = projection([d.Longitude, d.Latitude]);
+  });
+  console.log(houses);
+
+  map.selectAll("circle").data(houses)
+          .enter()
+          .append("circle")
+          .attr("r", 4)
+          .attr("opacity", 0.7)
+          .attr("cx", d => d.position[0])
+          .attr("cy", d => d.position[1]);
+
+
+  // 0. Helper functions for filtering our data as we go
+  // First, a dict that maps a specific attribute to a function that takes in a datapoint
+  //  and returns true if that particular point meets its filter criteria
+  //   e.g. d => d["Sale Price"] > 1000 && d["Sale Price"] < 700000
+  var currentFilters = {};
+
+  // Function to test a given point against the whole set of filters
+  function evalFilters(d) {
+
+    let metCriteria = true;
+
+    // *** What goes here?
+
+    return metCriteria;
+
+  }
+
+  // Function to go through all filters and update the appearance of every circle
+  //  Since we used a data join here, we can set opacity directly rather than use forEach
+  function updateFilterAppearance() {
+
+    // *** What goes here?
+
+
+  }
+  updateFilterAppearance();
+
+
+
+  // 1. Make a function to construct dynamic query sliders and add them to the panel
+  function makeSlider(property) {
+
+    // 1a. Get a raw array of values for this property
+
+    // *** What goes here?
+
+    // 1b. Gather data to power the slider viz elements
+
+
+
+
+    // 1c. For better UX, we can make sliders that show the distribution of data
+    // Easiest might be to just do jittered circles -- but we can do better!
+    // Let's make a smoothed histogram by applying a curved interpolator to a few bins
+    // We could also use kernel density estimation or a moving average
+
+
+
+    // 1d. d3.area is a generator just like d3.line, but it takes in y0 and y1 so it can
+    //      make a filled region underneath the line
+
+
+
+
+    // 1e. Allow the user to select regions through d3.brush
+
+
+
+
+    // 1f. Add the brush to the canvas
+
+
+
+  }
+
+  // "Sale Price"  "Bathrooms"  "Bedrooms"  "Lot Size"  "Year Built"
+
+
+
+
+  // 2. Let's make the map brushable so we can display the rows the user selects
+
+
+
+
+
+  };
+
+  requestData();
+
+
+
+
+  </script>
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>
