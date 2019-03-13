@@ -133,7 +133,10 @@
 
     let metCriteria = true;
 
-    // *** What goes here?
+    d3.values(currentFilters).forEach( filter => {
+      metCriteria = filter(d) && metCriteria
+    } );
+
 
     return metCriteria;
 
@@ -144,6 +147,9 @@
   function updateFilterAppearance() {
 
     // *** What goes here?
+    map.selectAll("circle")
+          .attr("opacity", d => (evalFilters(d)) ? 0.7 : 0.1)
+          .attr("stroke", d => (evalFilters(d)) ? "black" : "none")
 
 
   }
@@ -155,10 +161,22 @@
   function makeSlider(property) {
 
     // 1a. Get a raw array of values for this property
-
-    // *** What goes here?
+    let values = houses.map(d => d[property]);
+    let minMax = d3.extent(values);
 
     // 1b. Gather data to power the slider viz elements
+    let sliderWidth = parseFloat( d3.select("#controls").style("width") );
+    let sliderHeight = 60;
+
+    let xScale = d3.scaleLinear().domain(minMax).range([10, sliderWidth-10]);
+    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format(".2s"));
+
+    let container = d3.select("#controls").append("div").attr("class","control");
+    let label = container.append("div").text(property);
+    let canvas = container.append("svg").attr("width",sliderWidth).attr("height",sliderHeight);
+    let axisLabel = canvas.append("g").attr("transform","translate("+0+","+(sliderHeight-18)+")")
+                      .call(xAxis);
+
 
 
 
@@ -186,7 +204,9 @@
 
 
   }
-
+  makeSlider("Sale Price");
+  makeSlider("Bathrooms");
+  makeSlider("Bedrooms");
   // "Sale Price"  "Bathrooms"  "Bedrooms"  "Lot Size"  "Year Built"
 
 

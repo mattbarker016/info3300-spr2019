@@ -176,24 +176,19 @@
   const hdi       = d3.nest().key(function (d) { return d.Country.trim(); }).map(raw_hdi);
 
 
-  // POST_LECTURE - Adding a blacklist for some countries we know have bad data
-  //   Also removing outliers -- tiny nations -- due to linear regression assumptions
-  let blacklist = ["Singapore","Hong Kong","Malta","United Arab Emirates","Montenegro","Lebanon"];
+  let filterList = ["Singapore", "Hong Kong", "Malta", "United Arab Emirates", "Montenegro", "Lebanon"];
+
 
   raw_pisa.forEach(function (d) {
     let countryName = d.Country.trim();
 
-    // POST_LECTURE - Skip blacklisted rows
-    // indexOf returns -1 if not in array
-    if (blacklist.indexOf(countryName) === -1) {
+    if (filterList.indexOf(countryName) === -1) {
 
       // We'll wrap this in a try block in case our data processing tasks fail
       try {
           d["PISA"] = parseFloat(d["PISA"]); // For clarity
-          // POST_LECTURE - Wrapping Income in a log because some high GDP countries skew results
-          //  This breaks regression's assumption of normality
-          //  You can tell this is happening because only a few points move when you adjust Income slider
-          d["Income"] = Math.log( parseFloat(gdp.get(countryName)[0]["GDP"].replace(/,/g,"")) );
+
+          d["Income"] = Math.log(parseFloat(gdp.get(countryName)[0]["GDP"].replace(/,/g,""))) ;
           d["EduSpend"] = parseFloat(education.get(countryName)[0]["Education"]);
           d["Inequality"] = parseFloat(gini.get(countryName)[0]["WBGini"]);
           d["HDI"] = parseFloat(hdi.get(countryName)[0]["HDI"]);
@@ -206,8 +201,8 @@
         console.log("problem with '" + countryName + "'");
         console.log(error);
       }
-
     }
+
   });
   console.log(points);
 
