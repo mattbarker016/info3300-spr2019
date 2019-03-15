@@ -49,6 +49,7 @@
   <h3>Notes for March 13</h3>
   <p> Check out the original paper on <a href="http://www.cs.umd.edu/hcil/trs/92-01/92-01.html">Dynamic HomeFinder</a>. A <a href="https://youtu.be/5X8XY9430fM">1993 video</a> shows its dynamic queries in action. </p>
   <p> If you want to try Dynamic Homefinder, you can download a version for MSDOS <a href="http://hcil.umd.edu/products/">here</a>. Use DOS simulator like DOSBox or Boxer to run it. </p>
+  <p> <a href="https://www.cs.umd.edu/~ben/papers/Ahlberg1994alphaslidera.pdf">Here</a> is one of the first papers on making sliders more usable. <a href="http://www.ee.ic.ac.uk/r.Spence/pubs/TSWB94.pdf">Attribute Explorer</a> went even further.</p>
   <h5>HTML for today:</h5>
 
   <div id="panel">
@@ -132,12 +133,11 @@
   function evalFilters(d) {
 
     let metCriteria = true;
-
     d3.values(currentFilters).forEach( filter => {
-      metCriteria = filter(d) && metCriteria
+
+      metCriteria = filter(d) && metCriteria;
+
     } );
-
-
     return metCriteria;
 
   }
@@ -146,11 +146,9 @@
   //  Since we used a data join here, we can set opacity directly rather than use forEach
   function updateFilterAppearance() {
 
-    // *** What goes here?
     map.selectAll("circle")
           .attr("opacity", d => (evalFilters(d)) ? 0.7 : 0.1)
           .attr("stroke", d => (evalFilters(d)) ? "black" : "none")
-
 
   }
   updateFilterAppearance();
@@ -174,10 +172,10 @@
     let container = d3.select("#controls").append("div").attr("class","control");
     let label = container.append("div").text(property);
     let canvas = container.append("svg").attr("width",sliderWidth).attr("height",sliderHeight);
-    let axisLabel = canvas.append("g").attr("transform","translate("+0+","+(sliderHeight-18)+")")
+    let axisLabel = canvas.append("g")
+                  .attr("transform","translate("+0+","+(sliderHeight-18)+")")
                       .call(xAxis);
-
-
+    let histoLayer = canvas.append("g");
 
 
 
@@ -186,7 +184,25 @@
     // Let's make a smoothed histogram by applying a curved interpolator to a few bins
     // We could also use kernel density estimation or a moving average
 
+    // We can start by making a simple <rect> based histogram
+    //  Using the histogram helper function to "bin" everything up for us.
+    let numBins = 10;
+    let counts = d3.histogram().domain( minMax ).thresholds( numBins )(values);
+    console.log(counts);
 
+    let yScale = d3.scaleLinear().domain( d3.extent(counts, d=>d.length) )
+                                 .range([5, sliderHeight-18]);
+
+    histoLayer.selectAll("rect").data(counts)
+                .enter().append("rect")
+                .attr("x", d => xScale(d.x0))
+                .attr("y", d => (sliderHeight-18) - yScale(d.length))
+                .attr("width", d => xScale(d.x1) - xScale(d.x0))
+                .attr("height", d => yScale(d.length))
+                .style("fill", "steelblue")
+                .style("stroke", "black")
+
+    // On Monday we will make something more for 2019 than 1996
 
     // 1d. d3.area is a generator just like d3.line, but it takes in y0 and y1 so it can
     //      make a filled region underneath the line
@@ -195,8 +211,43 @@
 
 
     // 1e. Allow the user to select regions through d3.brush
+    var brush = d3.brushX()
+                      .extent(
+                        // NOTE: extent takes in only one parameter here --> [[upperleft], [lowerright]]
+                        [[10,0],[sliderWidth-10,sliderHeight-18]]
+                            )
+                      .on("brush end", brushMoved);
+                      console.log([10,0],
+                              [sliderWidth-10,sliderHeight-18]);
+    function brushMoved() {
+
+      console.log(d3.event);
+
+      if (d3.event.selection !== null) {
+
+        let start = xScale.invert(d3.event.selection[0]);
+        let end = xScale.invert(d3.event.selection[1]);
+
+        let newFilter = d => d[property] >= start && d[property] <= end;
+        currentFilters[property] = newFilter;
+      }
+
+      else {
+        // null happens when we have an "end" event with an empty slider
+        //   (e.g. clicking on whitespace to clear)
+
+        let newFilter = function() { return true; }
+        currentFilters[property] = newFilter;
+
+      }
+
+      updateFilterAppearance();
 
 
+    }
+
+    canvas.append("g").attr("class","brush")
+                        .call(brush);
 
 
     // 1f. Add the brush to the canvas
@@ -207,6 +258,8 @@
   makeSlider("Sale Price");
   makeSlider("Bathrooms");
   makeSlider("Bedrooms");
+  makeSlider("Lot Size");
+  makeSlider("Year Built");
   // "Sale Price"  "Bathrooms"  "Bedrooms"  "Lot Size"  "Year Built"
 
 
