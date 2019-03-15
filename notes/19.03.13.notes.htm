@@ -202,7 +202,7 @@
                 .style("fill", "steelblue")
                 .style("stroke", "black")
 
-    // On Monday we will make something more for 2019 than 1996
+    // On Monday we will make something more for 2019 than 1998
 
     // 1d. d3.area is a generator just like d3.line, but it takes in y0 and y1 so it can
     //      make a filled region underneath the line
@@ -216,13 +216,13 @@
                         // NOTE: extent takes in only one parameter here --> [[upperleft], [lowerright]]
                         [[10,0],[sliderWidth-10,sliderHeight-18]]
                             )
-                      .on("brush end", brushMoved);
-                      console.log([10,0],
-                              [sliderWidth-10,sliderHeight-18]);
+                      .on("brush end", brushMoved); // call function on "brush" and on "end"
+
     function brushMoved() {
 
-      console.log(d3.event);
+      //console.log(d3.event);
 
+      //we use d3.event because the brush triggers custom d3 events. JS event won't be as useful
       if (d3.event.selection !== null) {
 
         let start = xScale.invert(d3.event.selection[0]);
@@ -246,6 +246,7 @@
 
     }
 
+    // brush is useless until you give it a place to live and call it
     canvas.append("g").attr("class","brush")
                         .call(brush);
 
@@ -255,17 +256,17 @@
 
 
   }
+
   makeSlider("Sale Price");
   makeSlider("Bathrooms");
   makeSlider("Bedrooms");
   makeSlider("Lot Size");
   makeSlider("Year Built");
-  // "Sale Price"  "Bathrooms"  "Bedrooms"  "Lot Size"  "Year Built"
 
 
 
 
-  // 2. Let's make the map brushable so we can display the rows the user selects
+  // 2. Let's also make the map brushable so we can display the rows the user selects
 
 
 
