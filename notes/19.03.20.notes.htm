@@ -1,0 +1,366 @@
+<html><head>
+<title>INFO 3300 - March 19</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <style>
+
+    .county {
+      fill: slateblue;
+      stroke: none;
+    }
+
+    .state {
+      fill: lightgrey;
+      stroke: none;
+    }
+
+    .county-outline {
+      stroke: darkblue;
+      stroke-width: 1px;
+      fill: none;
+    }
+
+    .state-outline {
+      stroke: darkgrey;
+      stroke-width: 4px;
+      fill: none;
+    }
+
+    .graticule {
+      fill: none;
+      stroke: lightgrey;
+    }
+
+
+    .gridlines line {
+      stroke: #bbb;
+    }
+
+    .gridlines .domain {
+      stroke: none;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container larger">
+  <h3>Notes for March 19</h3>
+  <p></p>
+
+  <h5>HTML for today:</h5>
+
+
+  <svg id="usa" height="500" width="800" style="background: #sff; margin-top:50px" >
+  </svg>
+
+  <svg id="scatterplot" height="400" width="600" style="background: #fff; margin-top:50px" >
+
+
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+      <!--- autofilled --->
+    </code>
+  </pre>
+
+
+  <script id="notes1">
+
+  const requestData = async () => {
+
+    // Get a map of the USA
+    //  State codes: https://www2.census.gov/geo/docs/reference/state.txt
+    //  County codes: https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
+    const us = await d3.json("../datasets/us.json");
+    console.log(us);
+
+    // Let's filter the dataset so we have only the lower 48 states
+    let filteredStates = ['02','15','60','66','69','72','74','78'];
+    // Loop through state geometries and filter by id (padding with leading zeroes because they are stored as ints in the json)
+    us.objects.states.geometries = us.objects.states.geometries.filter( d => {
+                          return filteredStates.indexOf( d.id.toString().padStart(2,'0')  ) === -1;
+                        });
+    // Loop through state counties and filter by id (padding with leading zeroes because they are stored as ints in the json)
+    //  County IDs are supposed to start with 2 digits indicating state, so we can use startsWith (assuming we pad)
+    filteredStates.forEach( stateID => {
+      us.objects.counties.geometries = us.objects.counties.geometries.filter( d => {
+                            return !(d.id.toString().padStart(5,'0').startsWith(stateID));
+                          });
+    } );
+
+
+    const states = topojson.feature(us, us.objects.states);
+    const statesMesh = topojson.mesh(us, us.objects.states);
+    const counties = topojson.feature(us, us.objects.counties);
+    const countiesMesh = topojson.mesh(us, us.objects.counties);
+
+    let map = d3.select("#usa");
+    let mapWidth = map.attr("width");
+    let mapHeight = map.attr("height");
+    let projection = d3.geoAlbers().fitSize([mapWidth, mapHeight], states);
+    let path = d3.geoPath().projection(projection);
+    let viewport = map.append("g");
+
+    // Add paths for everything, we will hide things later
+    viewport.append("path")
+        .attr("class","graticule")
+        .attr("d",path(d3.geoGraticule10()));
+    viewport.selectAll(".state").data(states.features)
+        .enter()
+        .append("path")
+        .attr("class","state")
+        .attr("d", path);
+    viewport.selectAll(".county").data(counties.features)
+        .enter()
+        .append("path")
+        .attr("class","county")
+        .attr("visibility", "hidden")
+        .attr("d", path);
+    viewport.append("path")
+      .datum(countiesMesh)
+      .attr("class","county-outline")
+      .attr("visibility", "hidden")
+      .attr("d", path);
+    viewport.append("path")
+      .datum(statesMesh)
+      .attr("class","state-outline")
+      .attr("d", path);
+
+
+    // Adding a zoom tool here
+
+
+
+    function zoomed() {
+      // what goes here?
+
+
+
+
+    }
+
+
+    // viewport.selectAll(".state").on("click",clicked);
+    // viewport.selectAll(".county").on("click",clicked);
+
+    function clicked(d) {
+      console.log(d)
+
+      var bounds = path.bounds(d.geometry);
+      dx = bounds[1][0] - bounds[0][0];
+      dy = bounds[1][1] - bounds[0][1];
+      x = (bounds[0][0] + bounds[1][0]) / 2;
+      y = (bounds[0][1] + bounds[1][1]) / 2;
+      scale = 1; // what goes here?
+      translate = [1,1]; // what goes here?
+
+
+
+    }
+
+  };
+
+  requestData();
+
+
+
+
+
+
+
+  // COPIED FROM FEB18 NOTES -- WE ARE GOING TO UPDATE THIS A BIT!
+
+  // 0. Find our SVG and get that ready
+  //     We're going to use a new way of padding that makes axes easier
+  let svg = d3.select("svg#scatterplot");
+  let width = svg.attr("width");
+  let height = svg.attr("height");
+  // This is a clever way to do padding that is more adjustable when you are designing
+  let margin = { top: 10, right: 10, bottom: 50, left:50};
+  let chartWidth = width - margin.left - margin.right; // If you know the key is fixed text, you can access it with . instead of [""]
+  let chartHeight = height - margin.top - margin.bottom;
+
+  // 1. Import some CSV data
+  d3.csv("../datasets/gapminder.csv").then( function(data) {
+
+    // Useful fields:  "Life Expectancy"  "GDP/Person (PPP$)"   "Total Population"
+
+    // 2. Check for data issues
+
+    // What we find here are that most of the attributes are imported as strings rather than numbers. Let's cast them.
+    data.forEach( (d, i) => {
+      d['life'] =  Number(d["Life Expectancy"])  ;
+      d['gdp'] =  Number(d["GDP/Person (PPP$)"])   ;
+      d['pop'] =  Number(d["Total Population"].replace(/,/g,""))   ;
+    });
+
+    // We noticed that the chart seemed very crunched at the top
+    //  Looking at the data, we found points with 0 values in gdp and life
+    //  (This is probably because they were NA or blank and the Number() cast them to 0
+    data = data.filter( d => d['gdp'] != 0 && d['life'] != 0 );
+
+    console.log(data);
+
+    // 3. Let's build some scales
+    const gdpMin = d3.min(data, d => d['gdp']);
+    const gdpMax = d3.max(data, d => d['gdp']);
+    const xScale = d3.scaleLinear()
+            .domain([gdpMin+1, gdpMax+1])
+            .range([0, chartWidth]); // x axis
+
+    const lifeMin = d3.min(data, d => d['life']);
+    const lifeMax = d3.max(data, d => d['life']);
+    const yScale = d3.scaleLinear()
+            .domain([lifeMin, lifeMax])
+            .range([chartHeight, 0]); // y axis -- we reversed this to make the y axis work
+
+    const popMin = d3.min(data, d => d['pop']);
+    const popMax = d3.max(data, d => d['pop']);
+    const rScale = d3.scaleLinear()
+            .domain([popMin, popMax])
+            .range([5,10]); // circle size
+
+    const regionScale = d3.scaleOrdinal(d3.schemeCategory10); // don't need to define domain
+
+
+    // 4. Make some axes before we plot the circles
+    //     Let's also style them this time
+    // Y axis
+    let yAxis = d3.axisLeft(yScale); // ticks looked fine here
+    let yAxisLayer = svg.append("g").attr("class", "y axis") // Not d3-required. Just helpful for styling
+      .attr("transform","translate("+ (margin.left-10) +","+ margin.top +")");
+    yAxisLayer.call(yAxis);
+
+    // X axis
+    let xAxis = d3.axisBottom(xScale).ticks(8, d3.format("$.01s")); // Making simpler ticks without the e
+    // Check out http://bl.ocks.org/zanarmstrong/05c1e95bf7aa16c4768e
+    let xAxisLayer = svg.append("g").attr("class", "x axis")
+      .attr("transform","translate("+ margin.left +","+ (margin.top + chartHeight + 10) +")");
+    xAxisLayer.call(xAxis); // Same as .call
+
+    // If you want the axes to "touch" at 0,0, then remove the +- 10 from the translation
+    //  but this risks occluding points
+
+    // 5. Let's use axes to make some gridlines too!
+    // Y axis
+    let yGridlines = d3.axisLeft(yScale).tickSize(-chartWidth-10).tickFormat("");
+    let yGridlineLayer = svg.append("g").attr("class", "y gridlines") // See CSS at top of file
+      .attr("transform","translate("+ (margin.left-10) +","+ margin.top +")");
+    yGridlineLayer.call(yGridlines);
+
+    // X axis
+    let xGridlines = d3.axisBottom(xScale).tickSize(-chartHeight-10).tickFormat("");
+          // Why is tickSize negative?
+    let xGridlineLayer = svg.append("g").attr("class", "x gridlines")
+      .attr("transform","translate("+ margin.left +","+ (margin.top + chartHeight + 10) +")");
+    xGridlineLayer.call(xGridlines);
+
+
+    // If you want the axes to "touch" at 0,0, then remove the +- 10 from the translation
+    //  but this risks occluding points
+
+    // 5. Start plotting circles and see what happens
+
+
+    let scatter = svg.append("g") // We make a subgroup to contain the points we are adding, and use the margins to shrink it and move it to the right place, so that it doesn't overlap our axes
+          .attr("id","chart-region")
+          .attr("transform","translate("+margin.left+","+margin.top+")");
+
+    data.forEach( (d, i) => {
+
+      let gdp = xScale(d['gdp']+1);
+      let life = yScale(d['life']);
+      let pop = rScale(d['pop']);
+      let region = regionScale(d['Region']);
+
+      // Draw
+      let circle = scatter.append("circle")
+            .attr("cx", gdp)
+            .attr("cy", life)
+            .attr("r", pop)
+            .attr("opacity", 0.8)
+            .style("fill", region)
+            .attr("region", d["Region"])
+            .attr("nation", d["nation"]);
+
+    });
+
+    // END CODE FROM FEBRUARY 18
+
+
+    var chartZoom = d3.zoom()
+      .on("zoom", chartZoomed);
+
+    svg.call(chartZoom);
+
+    function chartZoomed() {
+        svg.select("#chart-region")
+            .attr("transform", d3.event.transform);
+        yAxisLayer.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
+        xAxisLayer.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+        yGridlineLayer.call(yGridlines.scale(d3.event.transform.rescaleY(yScale)));
+        xGridlineLayer.call(xGridlines.scale(d3.event.transform.rescaleX(xScale)));
+    }
+
+
+
+  });
+
+
+
+
+  </script>
+
+
+
+
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  <script>
+
+  // Polyfill for padStart care of: http://2ality.com/2015/11/string-padding.html
+  // (Polyfills are convenient when using recent JS additions, since browsers may lack them)
+  String.prototype.padStart =
+  function (maxLength, fillString=' ') {
+      let str = String(this);
+      if (str.length >= maxLength) {
+          return str;
+      }
+
+      fillString = String(fillString);
+      if (fillString.length === 0) {
+          fillString = ' ';
+      }
+
+      let fillLen = maxLength - str.length;
+      let timesToRepeat = Math.ceil(fillLen / fillString.length);
+      let truncatedStringFiller = fillString
+          .repeat(timesToRepeat)
+          .slice(0, fillLen);
+      return truncatedStringFiller + str;
+  };
+  </script>
+
+  </div>
+</body>
+</html>
