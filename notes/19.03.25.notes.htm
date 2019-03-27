@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
   <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="https://d3js.org/topojson.v2.min.js"></script>
   <style>
 
   line.dashed {
@@ -124,19 +123,19 @@
                                  // "magnetic" pull on x axis
                                  .force("xpos", d3.forceX()
                                                   .x( d => ageScale(d.age) )
-                                                  .strength( 0.5 ) )
+                                                  .strength( 0.05 ) )
                                 // "magnetic" pull on y axis
                                  .force("ypos", d3.forceY()
                                                   .y( d => allHeight/2.0 )
-                                                  .strength( 0.5 ) )
+                                                  .strength( 0.05 ) )
                                 // force to prevent points from overlapping
                                  .force("collision", d3.forceCollide()
                                                        .radius(2)
-                                                       .iterations(20) )
+                                                       .iterations(4) )
                                 // tick events are called for each "frame" of the simulation
                                 .on("tick", updateAllPassengerPositions);
 
-    // the simulation begins the moment the simulation object is created, so it is now simulating in the background
+    passengerSimulation.stop();
 
     function updateAllPassengerPositions() {
       // use the x and y values that the simulation provides to move the circles
@@ -181,10 +180,12 @@
 
 
     // Let's run the class version before rendering it
+    //   Data file is passengers_by_class
 
     // Initialize a force model for passengers
 
     // Run the simulation without showing it
+    //  Example of more advanced version of this code: https://bl.ocks.org/mbostock/1667139
 
     // When complete, draw the points
 
@@ -209,33 +210,6 @@
   <script>
   document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
   hljs.initHighlightingOnLoad();
-  </script>
-
-
-
-  <script>
-
-  // Polyfill for padStart care of: http://2ality.com/2015/11/string-padding.html
-  // (Polyfills are convenient when using recent JS additions, since browsers may lack them)
-  String.prototype.padStart =
-  function (maxLength, fillString=' ') {
-      let str = String(this);
-      if (str.length >= maxLength) {
-          return str;
-      }
-
-      fillString = String(fillString);
-      if (fillString.length === 0) {
-          fillString = ' ';
-      }
-
-      let fillLen = maxLength - str.length;
-      let timesToRepeat = Math.ceil(fillLen / fillString.length);
-      let truncatedStringFiller = fillString
-          .repeat(timesToRepeat)
-          .slice(0, fillLen);
-      return truncatedStringFiller + str;
-  };
   </script>
 
   </div>
