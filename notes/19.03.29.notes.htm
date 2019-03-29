@@ -45,6 +45,8 @@
   </div>
 
 
+  <svg id="graph2" height="800" width="800" style="background: #sff; margin-top:50px" ></svg>
+
 
   <h5>Code for today:</h5>
   <pre>
@@ -61,6 +63,9 @@
   const width = d3.select("#graph").attr("width");
   const height = d3.select("#graph").attr("height");
   const colorScale = d3.scaleOrdinal(d3.schemeSet1);
+
+  // Second later for some later drawings
+  const layer2 = d3.select("#graph2").append("g");
 
   // (turn on to get circle indicators for later in the demo)
   // for (let i=0; i<=4; i++) {
@@ -199,6 +204,55 @@
         render(); // manually update circles
 
     });
+
+
+
+
+    // Try some more datasets
+    // const karate = await d3.json("../datasets/soc-karate.json");
+    // const wiki = await d3.json("../datasets/soc-wiki-Vote.json");
+    // const enron = await d3.json("../datasets/ia-enron-only.json");
+    //
+    // let dataset = karate;
+    //
+    // dataset.nodes.forEach( node => {
+    //   node.x = width/2.0 + d3.randomUniform(-300,300)();
+    //   node.y = height/2.0 + d3.randomUniform(-300,300)();
+    // });
+    // console.log(dataset)
+    //
+    // var sim = d3.forceSimulation()
+    //             .nodes(dataset.nodes)
+    //             .force("links", d3.forceLink().links(dataset.edges).id( d => d.id ) )
+    //             .force("repulse", d3.forceManyBody().strength(-30) )
+    //             .force("center", d3.forceCenter(width/2.0, height/2.0))
+    //             .on("tick", render2);
+    //
+    // function render2() {
+    //
+    //   // Edges
+    //   let lines = layer2.selectAll("line.link").data(dataset.edges)
+    //   lines.enter().append("line").attr("class","link")
+    //        .attr("stroke","#333")
+    //        .merge(lines)
+    //        .attr("x1", d => d.source.x).attr("x2", d => d.target.x)   // Using the pointers d3.forceLink provides to access node x and y coords
+    //        .attr("y1", d => d.source.y).attr("y2", d => d.target.y);
+    //
+    //   // Nodes
+    //   let circles = layer2.selectAll("circle.node").data(dataset.nodes); // (returns nothing the first time render is called, then returns all circles)
+    //   circles.enter() // get a list of new circles to add (full the first time we call render, empty from then on)
+    //          .append("circle")
+    //          .attr("class","node")
+    //          .attr("fill", d => colorScale(d.prefix))
+    //          .attr("stroke", "#333")
+    //          .attr("r", 6)
+    //          .attr("cx", 0)
+    //          .attr("cy", 0)
+    //          .merge(circles) // brings circles that were found by layer.selectAll back in so that we can edit BOTH the new stuff AND existing stuff
+    //          .attr("transform", d => "translate("+d.x+","+d.y+")");
+    //
+    // }
+
 
 
 
