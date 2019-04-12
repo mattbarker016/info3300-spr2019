@@ -133,6 +133,8 @@
       }
 
       // compute FPS so we can better judge efficiency
+      //  use difference between time1 and time0 to compute how long the last frame took
+      //  in practice it may be more reliable here to do a moving window average
       time1 = Date.now();
       fps.text("FPS: " + Math.round(1000 / (time1 - time0)));
       time0 = time1;
@@ -187,31 +189,93 @@
   // Use Canvas to render the traffic model
 
   // 1. Get the canvas context
+  var canvas = document.querySelector("canvas.model");
+  var context = canvas.getContext("2d");
 
+  // 1b. Get some more data to do render more efficiently
+  // We do this by creating an "image" in memory and then pasting it to the canvas all in one go
+  // This means only one "paste" call instead of lots of fillRect
+  // The drawing context needs a specially formatted object in order to "paste", so we grab its existing empty one
+  var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  // We will modify the pixel data array in our imageData to create a new one to "paste" into the canvas
+  var pixels = imageData.data;
 
-  // 1b. Get some more data to do render more efficiently (later)
+  // To color in each pixel, we need separate R, G, and B values to use in the pixels array
+  // It doesn't take in a d3.rgb or anything special, just an unsigned 8bit integer
+  // To make this much more efficient, we use a property of how we defined our cell types
+  // Cell type 0 is an empty cell, type 1 is a down cell, and type 2 is a right cell
+  // So if we see a 1 in a particular place in the model's 2-d grid, then we know a DOWN is there
+
+  // Convert the down and right colors to RGB so that it's easier to make the lookup tables
+  //  We already know white is d3.rgb(255,255,255) so we can just hardcode that
+  let downC = d3.rgb(colorScale(1));
+  let rightC = d3.rgb(colorScale(2));
+
+  // We can feed the 0, 1, or 2 cell type right into a lookup table to get the proper R, G, and B values
+  //  e.g. colorR[0] == 255 because we want a white cell, colorR[1] is the "r" component of the down color, etc.
+  // By splitting it into 3 separate tables, it's easier to handle the separate elements in the pixel array
+  let colorR = [255, downC.r, rightC.r];
+  let colorG = [255, downC.g, rightC.g];
+  let colorB = [255, downC.b, rightC.b];
 
 
   function renderCanvas(bml) {
     // Remember to use JS functions to interact with the canvas and not d3 ones
 
-    // 2. Clear the canvas so we can redraw
+    // NOTE: This one was too slow due to lots of fillRect calls
+
+    // // 2. Clear the canvas so we can draw new content
+    // context.clearRect(0, 0, width, height);
+    //
+    // // 3a. Draw the down boxes
+    // //     Remember, cell type 0 is empty, type 1 is down, type 2 is right
+    //
+    // context.fillStyle = colorScale(1);
+    // for (let i = 0; i < bml.down.length; i++) {
+    //   let nd = bml.down[i];
+    //   context.fillRect( nd.x, nd.y, 1, 1 );
+    // }
+    //
+    //
+    // // 3b. Draw the right boxes
+    //
+    // context.fillStyle = colorScale(2);
+    // for (let i = 0; i < bml.right.length; i++) {
+    //   let nd = bml.right[i];
+    //   context.fillRect( nd.x, nd.y, 1, 1 );
+    // }
 
 
-    // 3a. Draw the down boxes
-    //     Remember, cell type 0 is empty, type 1 is down, type 2 is right
+    // 4. Use a more efficient rendering technique for the data
+    // We modify the pixels in our imageData to show the newest frame of animation
+    // We then "paste" it onto the canvas all at once -- intuition here is that array manipulations may be quicker than fillRects
+    // Thankfully we already have a 2-d array of our traffic model that uses 0, 1, and 2 to mark different kinds of cells
+    //  e.g. [0,1,1,0,0,0,0,0,0,2] is a row that is mostly empty but has two DOWN cells in it and one RIGHT cell
+    let grid = bml.grid;
 
+    // Loop through the grid
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
 
+        // The grid uses y and x, but the pixels array is flat, like [R1,G1,B1,A1, R2,G2,B2,A2, R3...]
+        // This means we need to convert y and x to the proper place in the pixels array
+        // To do this, we use 4 * locationInPixelArray since each "pixel" is 4 elements long
+        // locationInPixelArray is y * width + x -- i.e. each increase in Y means we have to skip a whole row's WIDTH worth of pixels
+        //                                               and then we shift a little bit further WITHIN the row using X
 
-    // 3b. Draw the right boxes
+        // pixels[locationInPixelArray + offsetForRGBA] = R,G,B,A color value as an int
+        // red
+        pixels[4*(y*width + x) + 0] = colorR[ grid[y][x] ]  // use the color lookup table to map grid cells to color values
+        // green
+        pixels[4*(y*width + x) + 1] = colorG[ grid[y][x] ]  // use the color lookup table to map grid cells to color values
+        // blue
+        pixels[4*(y*width + x) + 2] = colorB[ grid[y][x] ]  // use the color lookup table to map grid cells to color values
+        // aalpha
+        pixels[4*(y*width + x) + 3] = 255; // we want fully opaque cells
 
-
-
-
-    // 4. Use a more efficient rendering technique for the data (later)
-
-
-
+      }
+    }
+    context.putImageData(imageData, 0, 0);
 
 
   }
@@ -291,7 +355,7 @@
     if (height < 1) { return; }
     let width = bml.grid[0].length;
 
-    // NOTE: not going in lower right to upper left order might introduce inconsistencies
+    // NOTE: not going in lower right to upper left order might introduce inconsistencies with formal definition of model
 
     for (let i = 0; i < bml.down.length; i++) {
       let curY = bml.down[i].y;
