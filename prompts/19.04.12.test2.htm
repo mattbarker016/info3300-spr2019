@@ -1,0 +1,283 @@
+<html><head>
+<title>INFO 3300 - April 12</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+
+  .walk {
+    border: 1px solid grey;
+  }
+
+  .walkLine {
+    stroke: #000;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    fill: none;
+  }
+
+  .branchLine {
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0.1;
+  }
+
+  </style>
+</head>
+
+<body>
+  <div class="container larger">
+  <h3>Notes for April 12</h3>
+  <p>Don't forget that the project demo day and deadline are fast approaching! Demos on April 10.</p>
+  <p>Check out the documentation for <a href="https://github.com/d3/d3-force">d3.force</a> and the subsection for available <a href="https://github.com/d3/d3-force#forces">forces</a></p>
+  <p>It turns out that d3 does not put every node at 0,0 directly if x and y are null. Instead, it staggers them using a <a href="https://observablehq.com/@mbostock/phyllotaxis">phyllotaxis arrangement</a>.</p>
+  <p>Here is the d3.drag <a href="https://github.com/d3/d3-drag">documentation</a> and an <a href="https://bl.ocks.org/mbostock/3127661b6f13f9316be745e77fdfb084">example that combines drag and zoom</a>.</p>
+
+  <h5>HTML for today:</h5>
+
+  <p> SVG </p>
+  <svg id="graph" width="900" height="400" class="walk">
+  </svg>
+  <p> Canvas </p>
+  <canvas width="900" height="400" class="walk"></canvas>
+
+
+
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+      <!--- autofilled --->
+    </code>
+  </pre>
+
+
+  <script id="notes1">
+
+
+  // Inspired by Mike Bostock's random walk: https://bl.ocks.org/mbostock/e6f9e160585c153fa5ec543bd12b81e9
+
+  // Configure the random walk
+  const numSteps = 1800;    // N steps in the walk
+  const branchEveryN = 1;   // create some branches every N steps
+  const numBranches = 1;    // when branching, make N random ones
+  const branchSteps = 400;   // each branch walks N steps
+
+  const randomX = d3.randomNormal(0.1); // give this a slight positive bias so line heads to the right
+  const randomY = d3.randomNormal(0); // 0 gives an equal chance of going up or down
+  const stepScale = 3; // use this to boost how much each step moves
+
+  // Housekeeping
+  const colorScale = d3.scaleSequential(d3.interpolateRainbow).domain([0,1]);
+  const width = 800;
+  const height = 400;
+
+
+
+  const randomWalk = generateRandomWalk(width/20, height/2, numSteps, branchEveryN, numBranches, branchSteps);
+
+  console.log(randomWalk);
+
+
+
+
+
+  // Pick your renderer
+  renderSVG();
+  //renderCanvas();
+
+
+
+  // Use SVG to render the random walk
+  function renderSVG() {
+
+    let svg = d3.select("svg.walk");
+    let branchLayer = svg.append("g");
+    let walkLayer = svg.append("g");
+    let lineGen = d3.line().x( d => d.x ).y( d => d.y );
+
+    // main path
+    walkLayer.append("path")
+       .attr("class","walkLine")
+       .datum(randomWalk)
+       .attr("d", lineGen);
+
+    // branches
+    randomWalk.forEach( d => {
+
+      for (let i = 0; i < d.branches.length; i++) {
+
+        branch = d.branches[i];
+        branchLayer.append("path")
+           .attr("class","branchLine")
+           .datum( branch )
+           .attr("d", lineGen)
+           .attr("stroke", colorScale(d.progress) );
+
+      }
+
+    });
+
+
+  }
+
+
+  // Use Canvas to render the random walk
+  function renderCanvas() {
+
+    // Use JS functions to interact with the canvas and not d3 ones
+    var canvas = document.querySelector("canvas.walk"); // select
+    var context = canvas.getContext("2d"); // fetches the "paintbrush"
+
+    context.clearRect(0, 0, width, height);
+    //context.lineJoin = "round";
+    //context.lineCap = "round";
+    context.lineWidth = 2;
+    context.strokeStyle="black";
+
+
+
+  };
+
+
+
+
+  render();
+
+  canvas.onclick = render;
+
+  function render() {
+
+  var x0 = width / 20,
+      y0 = height / 2,
+      mainWalk = randomWalk(x0, y0, 1000);
+
+  context.clearRect(0, 0, width, height);
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  context.lineWidth = 1.5;
+  context.strokeStyle = "black";
+  renderWalk(mainWalk);
+
+  context.globalCompositeOperation = "multiply";
+  context.lineWidth = 1;
+  for (var i = 0; i < mainWalk.length; i += 100) {
+    var branchStart = mainWalk[i],
+        x0 = branchStart[0],
+        y0 = branchStart[1];
+    for (var j = 0; j < 1; ++j) {
+      context.strokeStyle = color(i + (Math.random() - 0.5) * 50);
+      var x1 = x0, y1 = y0;
+      for (var k = 0, m = 20; k < m; ++k) {
+        context.globalAlpha = (m - k - 1) / m;
+        var pieceWalk = randomWalk(x1, y1, 10),
+            pieceEnd = pieceWalk[pieceWalk.length - 1];
+        renderWalk(pieceWalk);
+        x1 = pieceEnd[0];
+        y1 = pieceEnd[1];
+      }
+      context.globalAlpha = 1;
+    }
+  }
+  }
+
+  function renderWalk(walk) {
+  var i, n = walk.length;
+  context.beginPath();
+  context.moveTo(walk[0][0], walk[0][1]);
+  for (i = 1; i < n; ++i) {
+    context.lineTo(walk[i][0], walk[i][1]);
+  }
+  context.stroke();
+  }
+
+
+
+
+
+  // Generating the random walk
+  function generateRandomWalk(startX, startY, steps, branchPeriod, numBranch, branchLength) {
+
+      let walk = new Array(steps); // preload array size
+
+      // initialize the walk
+      walk[0] = { x: startX,        // x position
+                  y: startY,        // y position
+                  step: 0,          // step number
+                  progress: 0,      // 0-1 progress through walk
+                  branches: [] };   // any branches off walk
+
+      // begin walking
+      for (let i = 1; i < steps; i++) {
+        walk[i] = { x: walk[i-1].x + ( randomX() * stepScale ),
+                    y: walk[i-1].y + ( randomY() * stepScale ),
+                    step: i,
+                    progress: (i / steps),
+                    branches: [] };
+
+        // check for branching
+        if (i % branchPeriod === 0) {
+
+          // make N branches
+          for (let j = 0; j < numBranch; j++) {
+
+            // build a branch of branchLength
+            // (no branches of branches, make a recursive function if you want that)
+            branch = new Array(branchLength);
+
+            // initial state
+            branch[0] = { x: walk[i].x,
+                          y: walk[i].y,
+                          step: 0,
+                          progress: 0 };
+
+            // walking from initial state
+            for (let k = 1; k < branchLength; k++) {
+              branch[k] = { x: branch[k-1].x + ( randomX() * stepScale ),
+                            y: branch[k-1].y + ( randomY() * stepScale ),
+                            step: k,
+                            progress: (k / branchLength) };
+            }
+
+            // add branch to main node
+            walk[i].branches.push(branch);
+
+          }
+        }
+        // done branching
+      }
+
+      // done walking
+      return walk;
+  }
+
+
+
+  </script>
+
+
+
+
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+  </div>
+</body>
+</html>
