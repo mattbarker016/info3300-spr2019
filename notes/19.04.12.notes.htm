@@ -43,7 +43,10 @@
 <body>
   <div class="container larger">
   <h3>Notes for April 12</h3>
-  <p>Stuff</p>
+  <p>Today we'll look at raster graphics and vector graphics. <a href="https://designshack.net/articles/layouts/vector-vs-raster-what-do-i-use/">Here</a> is a small guide.</p>
+  <p>Here are a few articles talking about SVG versus Canvas and choosing between them: <a href="https://www.sitepoint.com/canvas-vs-svg-choosing-the-right-tool-for-the-job/">1</a>, <a href="https://medium.com/@benisinca/svg-vs-canvas-92938aff799a">2</a>, <a href="https://smus.com/canvas-vs-svg-performance/">3 (older)</a> </p>
+  <p>In addition to Canvas and SVG, there is also WebGL which has a few extra capabilities which are very handy. You can make use of fragment shaders for visual effects (and even <a href="http://glslsandbox.com/e#207.3">GPU computation</a>).
+  <p>You can <a href="http://bl.ocks.org/mbostock/5914438">mix the raster and vector together</a> with enough work!</p>
   <h5>HTML for today:</h5>
 
   <div id="fpsCounter">FPS</div>
@@ -74,25 +77,34 @@
 
   <script id="notes1">
 
-  // Visualize a simple cellular automaton for traffic flow
+  // Visualize a simple cellular automaton for traffic flow (Biham-Middleton-Levine traffic model)
   // Inspired by Jason Davies example at: https://www.jasondavies.com/bml/#0.14/769/512
 
   // Configure the random walk
-  var width = 769;
-  var height = 300;
-  var density = 0.22;
-  var automaton;
-  var timer;
-  var useSVG = false;
+  var width = 769;    // model width in px
+  var height = 300;   // model height in px
+  var density = 0.22; // probability of a point being at a square
+  var automaton;      // storage for BML automaton
+  var timer;          // d3.timer instance
+  var useSVG = false; // toggle for SVG or canvas
 
 
+  // Examples
+  console.log( "BML Model:" );
+  console.log( generateBML(20, 20, 0.4) );
+
+
+  // Need to be able to stop simulation completely if it is super slow or we're resetting
+  // Kills d3 timer and wipes the SVG/Canvas elements
   function killSimulation() {
     if (timer) { timer.stop(); } // kill existing timer
-    d3.selectAll(".layer").html(""); // empty SVG
+    d3.selectAll(".layer").html(""); // empty SVG layers
     let ctx = document.querySelector("canvas.model").getContext("2d");
     ctx.clearRect(0, 0, width, height); // empty canvas
 
   }
+  // Restart simulation using the useSVG boolean to choose svg or canvas
+  // Invokes killSimulation, resizes canvas, generates new BML model, begins new d3.timer
   function restartSimulation() {
 
     killSimulation();
@@ -109,8 +121,10 @@
     var time1 = Date.now();
     timer = d3.timer(function() {
 
+      // move the model one down/right step
       stepBML(automaton);
 
+      // render using chosen element
       if (useSVG) {
         renderSVG(automaton);
       }
@@ -118,6 +132,7 @@
         renderCanvas(automaton);
       }
 
+      // compute FPS so we can better judge efficiency
       time1 = Date.now();
       fps.text("FPS: " + Math.round(1000 / (time1 - time0)));
       time0 = time1;
@@ -126,18 +141,25 @@
   }
 
 
+  // Update width and height if changed in code at top of script
+  d3.select("canvas.model").attr("width", width).attr("height", height);
+  d3.select("svg.model").attr("width", width).attr("height", height);
 
+
+
+
+  // ---------- SVG ----------
 
   // Use SVG to render the traffic model
   const svg = d3.select("svg.model");
-  svg.attr("width", width);
-  svg.attr("height", height);
   const downLayer = svg.append("g").attr("class","down layer");
   const rightLayer = svg.append("g").attr("class","right layer");
-  const colorScale = d3.scaleOrdinal().domain([0,1,2]).range(["#fff","#3439b9","#c94426"]);
+  const colorScale = d3.scaleOrdinal().domain([0,1,2]).range(["#fff","#5f64db","#c94426"]);
 
   function renderSVG(bml) {
 
+    // 0. Use data joins to draw rectangles for populated cells in the model
+    //    Remember, cell type 0 is empty, type 1 is down, type 2 is right
     let downRects = downLayer.selectAll("rect").data(bml.down);
     downRects.enter().append("rect")
         .attr("width",1)
@@ -156,59 +178,48 @@
         .attr("x", d => d.x)
         .attr("y", d => d.y);
 
+
   }
 
 
+  // ---------- CANVAS ----------
 
-  // Use Canvas to render the random walk
-  var canvas = document.querySelector("canvas.model"); // select
-  canvas.setAttribute("width", width);
-  canvas.setAttribute("height", height);
-  var context = canvas.getContext("2d"); // fetches the "paintbrush"
+  // Use Canvas to render the traffic model
 
-  var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  var pixels = imageData.data;
-  let downC = d3.rgb(colorScale(1));
-  let rightC = d3.rgb(colorScale(2));
-  let colorR = [255, downC.r, rightC.r];
-  let colorG = [255, downC.g, rightC.g];
-  let colorB = [255, downC.b, rightC.b];
+  // 1. Get the canvas context
+
+
+  // 1b. Get some more data to do render more efficiently (later)
+
 
   function renderCanvas(bml) {
+    // Remember to use JS functions to interact with the canvas and not d3 ones
 
-    // Use JS functions to interact with the canvas and not d3 ones
+    // 2. Clear the canvas so we can redraw
 
-    // context.clearRect(0, 0, width, height);
-    //
-    // context.fillStyle = colorScale(1);
-    // for (let i = 0; i < bml.down.length; i++) {
-    //   let nd = bml.down[i];
-    //   context.fillRect( nd.x, nd.y, 1, 1 );
-    // }
-    //
-    // context.fillStyle = colorScale(2);
-    // for (let i = 0; i < bml.right.length; i++) {
-    //   let nd = bml.right[i];
-    //   context.fillRect( nd.x, nd.y, 1, 1 );
-    // }
 
-    let grid = bml.grid;
+    // 3a. Draw the down boxes
+    //     Remember, cell type 0 is empty, type 1 is down, type 2 is right
 
-    for(let x = 0; x < width; x++){
-        for(y = 0; y < height; y++){
-          pixels[4*(y*width + x)+0] = colorR[ grid[y][x] ];
-          pixels[4*(y*width + x)+1] = colorG[ grid[y][x] ];
-          pixels[4*(y*width + x)+2] = colorB[ grid[y][x] ];
-          pixels[4*(y*width + x)+3] = 255;
-        }
-      }
-      context.putImageData(imageData, 0, 0);
+
+
+    // 3b. Draw the right boxes
+
+
+
+
+    // 4. Use a more efficient rendering technique for the data (later)
+
+
+
 
 
   }
 
 
 
+
+  // Button handlers for interactive environment
   d3.select("#stop").on("click", function() {
     killSimulation();
   });
@@ -220,7 +231,6 @@
     useSVG = false;
     restartSimulation();
   });
-
   d3.select("#densityLabel").text(density);
   d3.select("#densitySlider")
     .on("input", function() {
@@ -232,10 +242,6 @@
         restartSimulation();
       }
     });
-
-
-
-
 
 
 
@@ -284,6 +290,8 @@
     let height = bml.grid.length;
     if (height < 1) { return; }
     let width = bml.grid[0].length;
+
+    // NOTE: not going in lower right to upper left order might introduce inconsistencies
 
     for (let i = 0; i < bml.down.length; i++) {
       let curY = bml.down[i].y;
