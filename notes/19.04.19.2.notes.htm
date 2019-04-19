@@ -181,8 +181,8 @@
           let y = d.orig_y;
           
           // What goes here?
-          d.x = 0;
-          d.y = 0;
+          d.x = x * matrix[0][0] + y * matrix[0][1];
+          d.y = x * matrix[1][0] + y * matrix[1][1];
           
         });
         
@@ -190,10 +190,10 @@
     function updateMatrix(rotate, scale) {
       
       // What goes here?
-      matrix[0][0] = 1;
-      matrix[0][1] = 0;
-      matrix[1][0] = 0;
-      matrix[1][1] = 1;
+      matrix[0][0] = Math.cos(rotate) * (1 + scale);
+      matrix[0][1] = -Math.sin(rotate) * (1 + scale);
+      matrix[1][0] = Math.sin(rotate) * (1 + scale);
+      matrix[1][1] = Math.cos(rotate) * (1 + scale);
       
     }
     

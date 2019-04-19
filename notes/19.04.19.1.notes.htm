@@ -261,8 +261,8 @@
   <script id="transforms">
   
     // What goes here?
-    let initialState = { coyotes: 100, roadrunners: 100 };
-    let matrix = [ [0,0], [0,0] ]; 
+    let initialState = { coyotes: 200, roadrunners: 100 };
+    let matrix = [ [0.86, 0.08], [-0.12, 1.14] ]; 
   
     var points = [initialState];
     
@@ -271,8 +271,8 @@
         let last = points[ points.length-1 ];
         
         // What goes here?
-        let c = 1;
-        let r = 1;
+        let c = last.coyotes*matrix[0][0] + last.roadrunners*matrix[0][1];
+        let r = last.coyotes*matrix[1][0] + last.roadrunners*matrix[1][1];
         
         points.push( {coyotes: c, roadrunners: r} );
         
