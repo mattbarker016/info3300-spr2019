@@ -1,0 +1,536 @@
+<html><head>
+<title>INFO 3300 - April 19</title>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <style>
+  
+    circle {
+      fill: steelblue;
+      stroke: #555;
+      stroke-width: 1px;
+    }
+  
+    rect {
+      stroke: #888;
+      stroke-width: 1px;
+      fill: none;
+    }
+    
+    line {
+      stroke: #888;
+      stroke-width: 1px;
+      fill: none;
+      stroke-dasharray: 2;
+    }
+    
+    #transform text {
+        font-size: 30px;
+        text-anchor: middle;
+    }
+    
+    .bracket {
+      stroke: #333;
+      stroke-width: 1px;
+      fill: none;
+    }
+    
+    #transform .smallLabel {
+      font-size: 20px;
+    }
+    
+    input {
+        margin-top: 20px;
+        margin-left: 40px;
+        width: 400px;
+    }
+  
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for April 19</h3>
+  <p>Linear Algebra: How do matrices work? Do they work on coordinates?? Let's find out! </p>
+  <p>Nicky Case (creator of a <a href="https://ncase.me/">ton of cool demos</a> and the <a href="https://ncase.me/cos/">Coming Out Simulator</a>) has a great <a href="https://ncase.me/matrix/">interactive demo</a> for transformation matrices.</p>
+  <p>Refer back to our notes on <a href="notes/19.03.08.notes.htm">linear regression</a>.</p>
+
+  <h5>Simple Linear Regression:</h5>
+
+  <div id="plotContainer">
+    <svg width=500 height=400 id="plot"></svg>
+  </div>
+
+  <h5>Transforming a Plot</h5>
+  
+  <div id="plotContainer">
+    <svg width=900 height=480 id="transform">
+      <g transform="translate(0,0)" id="transformY">
+        <rect x=0 y=0 width=50 height=400 />
+        <line x1=0 x2=50 y1=200 y2=200 />
+        <g transform="translate(0,0)" class="axis"></g>
+      </g>
+      <g transform="translate(70,430)" id="transformX">
+        <rect x=0 y=0 width=400 height=50 />
+        <line x1=200 x2=200 y1=0 y2=50 />
+        <g transform="translate(0,40)" class="axis"></g>
+      </g>
+      <g transform="translate(70,0)" id="transformPlot">
+        <rect x=0 y=0 width=400 height=400 />
+        <line x1=0 x2=400 y1=200 y2=200 />
+        <line x1=200 x2=200 y1=0 y2=400 />
+      </g>
+      <g transform="translate(500,30)" id="inMatrix">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="x">X</text>
+        <text x=35 y=85 class="y">Y</text>
+        <path d="M60,0 H70 V100 H60" class="bracket" />
+      </g>
+      <g transform="translate(580,30)" id="transformMatrix">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="x1">X1</text>
+        <text x=35 y=85 class="x2">X2</text>
+        <text x=105 y=35 class="y1">Y1</text>
+        <text x=105 y=85 class="y2">Y2</text>
+        <path d="M130,0 H140 V100 H130" class="bracket" />
+        <text x=155 y=60>=</text>
+      </g>
+      <g transform="translate(750,30)" id="outMatrix">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="x">X'</text>
+        <text x=35 y=85 class="y">Y'</text>
+        <path d="M60,0 H70 V100 H60" class="bracket" />
+      </g>
+      <text x=650 y=180 class="smallLabel" id="rotationLabel">Rotation: 0</text>
+      <text x=650 y=220 class="smallLabel" id="scaleLabel">Scale: 0</text>
+    </svg>
+    <p>Rotate: <input type="range" value=0 min=-90 max=90 step=1 id="rotationSlider" /></p>
+    <p>Scale:  <input type="range" value=0 min=-0.5 max=1 step=0.1 id="scaleSlider" /></p>
+  </div>
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+
+  <script id="transforms">
+  
+    var roundNumber = d3.format(".5g");
+    var normalGenerator = d3.randomNormal();
+
+    function generateDataWith(intercept, slope, noise, n) {
+    	var points = [];
+
+    	for (var i = 0; i < n; i++) {
+    		var x = normalGenerator();
+    		// Fill in the noisy y value
+    		var y = x * slope + intercept +    // perfect data for the expected model
+    			      noise * normalGenerator(); // now with added noise
+    		points.push({ x: x, y: y });
+    	}
+
+    	return points;
+    }
+  
+    // *** Randomly generate some points
+    var points = generateDataWith(1, 0.5, 0.2, 10);
+    // ***
+    
+    let meanX = 0;
+    let meanY = 0;
+    points.forEach( d => {
+      meanX += d.x;
+      meanY += d.y;
+    });
+    meanX = meanX / points.length;
+    meanY = meanY / points.length;
+    
+    let adjustedPoints = []
+    points.forEach( d => {
+      adjustedPoints.push({ x: d.x - meanX, 
+                            y: d.y - meanY, 
+                            orig_x: d.x - meanX, 
+                            orig_y: d.y - meanY 
+                          });
+    });
+    
+    
+    
+    
+    let matrix = [ [1, 0], [0, 1] ]; // identity matrix by default
+    
+    function transformPoints() {
+      
+        adjustedPoints.forEach( d => {
+          
+          let x = d.orig_x;
+          let y = d.orig_y;
+          
+          // What goes here?
+          d.x = 0;
+          d.y = 0;
+          
+        });
+        
+    }
+    function updateMatrix(rotate, scale) {
+      
+      // What goes here?
+      matrix[0][0] = 1;
+      matrix[0][1] = 0;
+      matrix[1][0] = 0;
+      matrix[1][1] = 1;
+      
+    }
+    
+    
+  
+    
+    transformPlot = d3.select("#transformPlot");
+    transformXPlot = d3.select("#transformX");
+    transformYPlot = d3.select("#transformY");
+    tWidth = 400;
+    tHeight = 400;
+    txScale = d3.scaleLinear().domain([-3, 3]).range([0,tWidth]);
+    tyScale = d3.scaleLinear().domain([-3, 3]).range([tHeight,0]);
+    
+    
+    function updateTransformPlots() {
+
+        transformPoints();
+        console.log(adjustedPoints);
+        
+        let cP = transformPlot.selectAll("circle").data(adjustedPoints);
+        cP.enter().append("circle")
+          .attr("r", 5)
+          .attr("opacity",0.6)
+          .on("mouseover", mouseoverPoint)
+          .on("mouseout", mouseoutPoint)
+          .merge(cP)
+          .attr("cx", d => txScale(d.x))
+          .attr("cy", d => tyScale(d.y));
+        let cX = transformXPlot.selectAll("circle").data(adjustedPoints);
+        cX.enter().append("circle")
+          .attr("r", 5)
+          .attr("opacity",0.6)
+          .merge(cX)
+          .attr("cx", d => txScale(d.x))
+          .attr("cy", 25);
+        let cY = transformYPlot.selectAll("circle").data(adjustedPoints);
+        cY.enter().append("circle")
+          .attr("r", 5)
+          .attr("opacity",0.6)
+          .merge(cY)
+          .attr("cx", 25)
+          .attr("cy", d => tyScale(d.y));
+              
+    }
+    
+    function updateMatrixDisplay() {
+      d3.select("#transformMatrix .x1").text( toFixed( matrix[0][0], 2) );
+      d3.select("#transformMatrix .x2").text( toFixed( matrix[1][0], 2) );
+      d3.select("#transformMatrix .y1").text( toFixed( matrix[0][1], 2) );
+      d3.select("#transformMatrix .y2").text( toFixed( matrix[1][1], 2) );
+    }
+    
+    updateTransformPlots();
+    updateMatrixDisplay();
+    
+    d3.select("#rotationSlider").on("input", function() {
+        let deg = parseFloat(this.value);
+        let rad = toRadians(deg);
+        let scale = parseFloat(d3.select("#scaleSlider").node().value);
+        
+        // update the transform matrix
+        //  orthogonal rotation:  cos  -sin
+        //                        sin   cos
+        updateMatrix(rad, scale);
+        
+        d3.select("#rotationLabel").text("Rotation: " + toFixed(deg,1));
+        d3.select("#scaleLabel").text("Scale: " + (1+scale));
+        
+        updateTransformPlots();
+        updateMatrixDisplay();
+        
+    });
+    
+    d3.select("#scaleSlider").on("input", function() {
+        let deg = parseFloat(d3.select("#rotationSlider").node().value);
+        let rad = toRadians(deg);
+        let scale = parseFloat(this.value);
+        
+        // update the transform matrix
+        //  orthogonal rotation:  cos  -sin
+        //                        sin   cos
+        updateMatrix(rad, scale);
+        
+        d3.select("#rotationLabel").text("Rotation: " + toFixed(deg,1));
+        d3.select("#scaleLabel").text("Scale: " + (1+scale));
+        
+        updateTransformPlots();
+        updateMatrixDisplay();
+        
+    });
+    
+    function mouseoverPoint() {
+      let pt = d3.select(this).style("stroke-width","3px").style("stroke","#000");
+      let dat = pt.data()[0];
+        
+      d3.select("#inMatrix .x").text( toFixed(dat.orig_x, 2) );
+      d3.select("#inMatrix .y").text( toFixed(dat.orig_y, 2) );
+      d3.select("#outMatrix .x").text( toFixed(dat.x, 2) );
+      d3.select("#outMatrix .y").text( toFixed(dat.y, 2) );
+        
+    }
+    function mouseoutPoint() {
+      let pt = d3.select(this).style("stroke-width","").style("stroke","");
+      d3.select("#inMatrix .x").text( "X" );
+      d3.select("#inMatrix .y").text( "Y" );
+      d3.select("#outMatrix .x").text( "X\'" );
+      d3.select("#outMatrix .y").text( "Y\'" );
+    }
+  
+  
+  
+  
+    function toRadians (deg) {
+      return deg * (Math.PI/180.0);
+    }
+    // floating point error immune fixed decimal string format care of https://stackoverflow.com/posts/11818658/revisions
+    function toFixed(num, fixed) {
+      var re = new RegExp('^-?\\d+(?:\.\\d{0,' + (fixed || -1) + '})?');
+      return num.toString().match(re)[0];
+    } 
+  
+  </script>
+
+
+
+
+
+
+
+
+
+
+  <script id="regression_notes">
+
+
+
+  var model = { intercept: 0, slope: 0 };
+
+
+  // *** Calculate the optimal slope and intercept.
+  function leastSquares(points) {
+  	model = { intercept: 0, slope: 0 }; // zero the model
+  	if (points.length == 0) { return model; }
+
+    // Get some useful data
+    let meanX = d3.mean(points, d => d.x);
+    let meanY = d3.mean(points, d => d.y);
+
+  	// Use the expression for beta hat from https://en.wikipedia.org/wiki/Simple_linear_regression
+  	model.slope = d3.sum(points, d => {
+      return (d.x - meanX) * (d.y - meanY);
+    });
+    model.slope = model.slope / d3.sum(points, d => {
+      return (d.x - meanX) * (d.x - meanX);
+    });
+
+    // alpha hat goes here
+    // (meanX, meanY) always on our line
+  	model.intercept =  meanY - model.slope * meanX;
+
+  	return model;
+  }
+
+  // Run leastSquares and compute residuals
+  model = leastSquares(points);
+	points.forEach( point => {
+    let prediction = (point.x * model.slope) + model.intercept
+    point.residual = point.y - prediction;
+  });
+
+  // *** Calculate goodness of fit
+  function rSquared(points) {
+    // Use the expression for r2 from https://en.wikipedia.org/wiki/Coefficient_of_determination
+
+    let meanY = d3.mean(points, d => d.y)
+    let totalSS = d3.sum(points, d => (d.y - meanY) * (d.y - meanY));
+    let residualSS = d3.sum(points, d => d.residual * d.residual);
+
+    return 1 - (residualSS / totalSS);
+  }
+
+
+  // Here is an augmented version of the clickable chart from last week, this time with random data!
+  // This will let us play with residuals again
+
+  let clickablePoints = copy(points); // needs to be a deep copy because we modify objects inside array
+  let lossFunction = squaredError;
+
+  let clickSVG = d3.select("#plot");
+  let clickWidth = clickSVG.attr("width");
+  let clickHeight = clickSVG.attr("height");
+  let xScale = d3.scaleLinear().domain([-3, 3]).range([0, clickWidth]);  // hardcoded for the demo
+  let yScale = d3.scaleLinear().domain([-3, 3]).range([clickHeight, 0]); // hardcoded for the demo
+
+  // Use the scales from the previous bit of code!
+
+  // Our regression model
+  let clickableModel = { intercept: 1, slope: 0 };  // hardcoding a bit of intercept to illustrate a PCA concept
+  clickSVG.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(0))
+    .attr("x2", xScale(0))
+    .attr("y1", yScale(-3))
+    .attr("y2", yScale(3))
+  clickSVG.append("line").attr("stroke","lightgrey")
+    .attr("x1", xScale(-3))
+    .attr("x2", xScale(3))
+    .attr("y1", yScale(0))
+    .attr("y2", yScale(0))
+  let clickResidualGroup = clickSVG.append("g")  // No padding
+                            .attr("id","residualGroup");
+  clickSVG.selectAll("circle").data(points).enter()
+    .append("circle")
+    .attr("cx", d => xScale(d.x) )
+    .attr("cy", d => yScale(d.y) )
+    .attr("r", 7);
+
+  let clickRegressionLine = clickSVG.append("line")
+        .attr("class", "estimated")
+        .style("stroke", "#e41a1c");
+  function updateClickRegressionLine(line, model) {
+    line.attr("x1",xScale(-3))
+        .attr("x2",xScale(3))
+        .attr("y1",yScale((model.slope*-3) + model.intercept))
+        .attr("y2",yScale((model.slope*3) + model.intercept));
+
+  }
+  updateClickRegressionLine(clickRegressionLine, clickableModel);
+
+  function updateClickResiduals(points, model) {
+  	points.forEach( point => {
+      //y=mx+b
+      let prediction = (point.x * model.slope) + model.intercept
+      point.residual = point.y - prediction;
+    });
+
+  }
+
+  updateClickResiduals(points, clickableModel);
+
+  function updateClickResidualPaths(points) {
+    let residuals = clickResidualGroup.selectAll("path.residual")
+                                      .data(points);
+    residuals.exit().remove();
+    residuals.enter().append("path")
+          .attr("class", "residual")
+          .style("stroke", "#2e61c4")
+          .style("stroke-width", "2px")
+          .merge(residuals) // Merge in previous paths
+          .attr("d", residualLine); // Path generator for vertical residual lines
+  }
+
+  updateClickResidualPaths(points);
+
+  var clickModelText = clickSVG.append("text")
+    .attr("id", "status")
+    .attr("x", 10).attr("y", 30)
+  function updateClickModelLabel(points) {
+    clickModelText.text("Slope: " + roundNumber(clickableModel.slope) +
+                   " -- Loss: " + roundNumber(lossFunction(points)) +
+                   " -- Loss Function: " + lossFunction.name);   // WARNING, may not be IE/Opera compatible;
+  }
+  updateClickModelLabel(clickablePoints);
+
+
+  clickSVG.on("click", function() {
+  	var mouseXY = d3.mouse(this);
+
+  	console.log(mouseXY);
+  	// Figure out where the mouse is in data coordinates
+    // Replace these with useful values in data coordinates.
+  	var clickX = xScale.invert(mouseXY[0]);
+  	var clickY = yScale.invert(mouseXY[1])-clickableModel.intercept;
+    console.log(clickX, clickY);
+  	// Calculate a new slope
+  	clickableModel.slope = clickY / clickX;
+
+  	// update the errors, text, and model lines
+    updateClickRegressionLine(clickRegressionLine, clickableModel);
+    updateClickResiduals(clickablePoints, clickableModel);
+    updateClickModelLabel(clickablePoints);
+    updateClickResidualPaths(clickablePoints);
+
+  });
+
+  // Function to find the point with the worst residual value
+  function worstResidual (points) {
+    let i = d3.scan(points, (a, b) => Math.abs(b.residual) - Math.abs(a.residual) );
+    return [ points[i] ];
+  }
+  // Helper functions to compute error values
+  function squaredError (points) {
+    return d3.sum(points, point => point.residual * point.residual);
+  }
+  function absoluteError (points) {
+    return d3.sum(points, point => Math.abs(point.residual));
+  }
+  function maxError (points) {
+    return d3.max(points, point => Math.abs(point.residual));
+  }
+
+  // Helper function to generate vertical line from point to slope using residuals
+  function residualLine(point) {
+  	// Return the path "d" string for a line from the
+  	//  point to its predicted value
+  	return "M" + xScale(point.x) + "," + yScale(point.y) +
+  	" L" + xScale(point.x) + "," + yScale(point.y - point.residual);
+  }
+
+  // deep copy function care of https://www.codementor.io/avijitgupta/deep-copying-in-js-7x6q8vh5d
+  function copy(o) {
+    var output, v, key;
+    output = Array.isArray(o) ? [] : {};
+    for (key in o) {
+      v = o[key];
+      output[key] = (typeof v === "object") ? copy(v) : v;
+    }
+    return output;
+  }
+  
+
+
+
+  </script>
+
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("transforms").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>
