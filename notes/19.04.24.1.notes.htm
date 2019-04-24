@@ -1,5 +1,5 @@
 <html><head>
-<title>INFO 3300 - April 19</title>
+<title>INFO 3300 - April 24</title>
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
 
@@ -66,7 +66,7 @@
 </head>
 <body>
   <div class="container larger">
-  <h3>Prompt for April 19</h3>
+  <h3>Prompt for April 24</h3>
   <p>Linear Algebra: How do matrices work? Do they work on coordinates?? Let's find out! </p>
   <p>Here is a neat <a href="http://setosa.io/ev/eigenvectors-and-eigenvalues/">interactive tool</a> for eigenvectors and eigenvalues.</p>
 
@@ -158,7 +158,7 @@
   </svg>
   <p>Let's plot out the stepwise changes from an initial state</p>
   <div id="plotContainer">
-    <svg width=800 height=440 class="sketch" id="transformPlot">
+    <svg width=800 height=440 class="sketch">
       
       <g id="transformPlot">
         <g id="axisX" class="axis" transform="translate(0,200)"></g>
@@ -244,6 +244,85 @@
   <p>Eigenvectors give you one key benefit: Because they describe a consistent "line" moving from [0,0], you can use them to compute c(t) and r(t) for other state vectors!</p>
   
   
+  <svg class="sketch" width=750 height=200 >
+    <g transform="translate(0,30)">
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">1000</text>
+      <text x=35 y=85 class="y">1000</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=85 y=60>=</text>
+    </g>
+    <g transform="translate(170,30)">
+      <text x=-35 y=60>s_1 *</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">100</text>
+      <text x=35 y=85 class="y">300</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=90 y=60>+</text>
+    </g>
+    <g transform="translate(330,30)">
+      <text x=-35 y=60>s_2 *</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">200</text>
+      <text x=35 y=85 class="y">100</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+    </g>
+    <g transform="translate(450,30)">
+      <text x=100 y=35>1000 = (s_1 * 100) + (s_2 * 200)</text>
+      <text x=100 y=85>1000 = (s_1 * 300) + (s_2 * 100)</text>
+    </g>
+  </svg>
+  <p>We have a simple system of equations, which can be solved via substitution for s_1 and s_2. Eventually, we find s_1=2 and s_2=4, meaning that the initial state vector [1000,1000] can be represented using the two eigenvectors for the system.</p>
+  <p>We can then use the formula for eigenvectors to solve for a particular time, t</p>
+  
+  <svg class="sketch" width=750 height=200 >
+    <g transform="translate(120,30)">
+      <text x=-60 y=60>2  *  (1.1)^t  *  </text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">100</text>
+      <text x=35 y=85 class="y">300</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=90 y=60>+</text>
+    </g>
+    <g transform="translate(330,30)">
+      <text x=-60 y=60>4  *  (0.9)^t  *  </text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">200</text>
+      <text x=35 y=85 class="y">100</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+    </g>
+    <g transform="translate(450,30)">
+      <text x=100 y=35>c(t) = (1.1^t) * 200 + (0.9^t) * 800</text>
+      <text x=100 y=85>r(t) = (1.1^t) * 600 + (0.9^t) * 400</text>
+    </g>
+  </svg>
+  <p>Using these formulas to draw a line graph...</p>
+  <div id="plotContainer">
+    <svg width=440 height=440 class="sketch">
+      
+      <g id="eigenPlot">
+        <g id="axisX2" class="axis" transform="translate(0,200)"></g>
+        <g id="axisY2" class="axis" transform="translate(200,0)"></g>
+        <text x=415 y=300>c(t)</text>
+        <text x=100 y=420>r(t)</text>
+      </g>
+    </svg>
+  </div>
+  <p>And now drawing lines for many different combinations of s_1 and s_2!</p>
+  <div id="plotContainer">
+    <svg width=440 height=440 class="sketch">
+      
+      <g id="mixturePlot">
+        <g id="axisX3" class="axis" transform="translate(0,200)"></g>
+        <g id="axisY3" class="axis" transform="translate(200,0)"></g>
+        <text x=415 y=300>c(t)</text>
+        <text x=100 y=420>r(t)</text>
+      </g>
+    </svg>
+  </div>
+  <p>Note: This code does not make eigenvectors have a length of 1. This is generally done by convention.</p>
+  
+  
   
   
 
@@ -285,9 +364,6 @@
     }
     
     
-    
-    
-    
     let plot = d3.select("#transformPlot");
     let width = 400;
     let height = 400;
@@ -324,11 +400,6 @@
         
     });
     
-    
-    
-    
-    
-    
     function updateMatrixDisplay() {
       d3.select("#transformMatrix .x1").text( toFixed( matrix[0][0], 2) );
       d3.select("#transformMatrix .x2").text( toFixed( matrix[1][0], 2) );
@@ -336,8 +407,6 @@
       d3.select("#transformMatrix .y2").text( toFixed( matrix[1][1], 2) );
     }
     updateMatrixDisplay();
-  
-  
   
     function toRadians (deg) {
       return deg * (Math.PI/180.0);
@@ -351,6 +420,76 @@
   </script>
 
 
+  <script id="eigens">
+  
+    let mixture = { s1: 2, s2: 4 };
+  
+    var points2 = [];
+    // Calculate for T values from -10 to 10, every 0.5t
+    for (let t = -100; t <= 100; t = t + 0.5) {
+        
+        //Using the formulas for mixing the two eigenvectors together
+        
+        points2.push({
+          // What goes here?
+          coyotes: 0,
+      roadrunners: 0,
+          
+        });
+      
+    }
+    
+    let plot2 = d3.select("#eigenPlot");
+    let width2 = 400;
+    let height2 = 400;
+    let xScale2 = d3.scaleLinear().domain([-500, 2000]).range([10,width2-10]);
+    let yScale2 = d3.scaleLinear().domain([-500, 2000]).range([height2-10,10]);
+    let xAxis2 = d3.axisBottom(xScale2);
+    let yAxis2 = d3.axisLeft(yScale2);
+    let line2 = plot2.append("path");
+    let lineGen2 = d3.line().x(d=>xScale2(d.coyotes)).y(d=>yScale2(d.roadrunners));
+    d3.select("#axisX2").attr("transform","translate(0,"+yScale2(0)+")").call(xAxis2);
+    d3.select("#axisY2").attr("transform","translate("+xScale2(0)+",0)").call(yAxis2);
+    
+    let circles2 = plot2.selectAll("circle").data(points2);
+    circles2.enter().append("circle")
+      .attr("r", 5)
+      .attr("opacity",0.6)
+      .merge(circles2)
+      .attr("cx", d => xScale2(d.coyotes))
+      .attr("cy", d => yScale2(d.roadrunners));
+    line2.datum(points2).attr("d", lineGen2);
+    
+  
+  </script>
+
+  <script id="mixtures">
+
+    
+    // Let's draw lines for a variety of different initial states using the formulas we wrote earlier
+    var points3 = [];
+    
+    
+    
+    
+    let plot3 = d3.select("#mixturePlot");
+    let width3 = 400;
+    let height3 = 400;
+    let xScale3 = d3.scaleLinear().domain([-500, 2000]).range([10,width3-10]);
+    let yScale3 = d3.scaleLinear().domain([-500, 2000]).range([height3-10,10]);
+    let xAxis3 = d3.axisBottom(xScale3);
+    let yAxis3 = d3.axisLeft(yScale3);
+    let lineGen3 = d3.line().x(d=>xScale3(d.coyotes)).y(d=>yScale3(d.roadrunners));
+    d3.select("#axisX3").attr("transform","translate(0,"+yScale3(0)+")").call(xAxis3);
+    d3.select("#axisY3").attr("transform","translate("+xScale3(0)+",0)").call(yAxis3);
+    
+    points3.forEach( d => {
+      let ln = plot3.append("path");
+      ln.datum(d).attr("d", lineGen3);
+    });
+    
+
+  </script>
 
 
 
