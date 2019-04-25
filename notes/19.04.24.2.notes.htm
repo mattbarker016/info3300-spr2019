@@ -305,17 +305,18 @@
     eigenvectors.forEach( d => {
       
       // What goes here?
-      let xPosition = 0;
-      let yPosition = 0;
+      let xPosition = meanX;
+      let yPosition = meanY;
+      
       
       eigenPlot.append("line")
           .style("stroke", eigenColors(d.eigenvalue))
           .attr("class", "eigen")
           // What goes here?
-          .attr("x1", 0)
-          .attr("x2", 0)
-          .attr("y1", 0)
-          .attr("y2", 0);
+          .attr("x1", eigenXScale(xPosition))
+          .attr("y1", eigenYScale(yPosition))
+          .attr("x2", eigenXScale(xPosition + d.vector[0]))
+          .attr("y2", eigenYScale(yPosition + d.vector[1]));
       
     });
     
@@ -380,76 +381,76 @@
   
     const requestData = async () => {
       // Import some data on UK diet
-      // columns = ["Alcoholic Drinks", "Beverages", "Carcase Meat", "Cereals", "Cheese", "Confectionary", "Fats", "Fish", "Fresh fruit", "Fresh potatoes", "Fresh veggies", "Other meat", "Other veggies", "Processed potatoes", "Processed veggies", "Soft drinks", "Sugars"]
-      // const diet = await d3.csv("../datasets/diet.csv", d3.autoType);
-      // console.log(diet)
-      // console.log(diet.columns)
-      // 
-      // // Compute Principal Components
-      // let raw = [];
-      // diet.forEach( d => {
-      //   row = [];
-      //   for (let i=0; i<columns.length; i++) {
-      //       row.push( d[columns[i]] );
-      //   }
-      //   raw.push(row);
-      // });
-      // console.log(raw);
-      // 
-      // console.log(raw_data);
-      // eigenvectors = PCA.getEigenVectors(raw);
-      // adjusted_d = PCA.computeDeviationMatrix(raw);
-      // variance = PCA.computeDeviationScores(adjusted_d);
-      // cov = PCA.computeVarianceCovariance(variance);
-      // console.log(eigenvectors);
-      // console.log(cov);
-      // console.log(PCA.computePercentageExplained(eigenvectors, eigenvectors[0]));
-      // console.log(PCA.computePercentageExplained(eigenvectors, eigenvectors[1]));
-      // 
-      // let pc1 = eigenvectors[0].vector;
-      // let pc2 = eigenvectors[1].vector;
-      // 
-      // 
-      // 
-      // // Draw a simple bar chart for all data and PC
-      // 
-      // // Find min/max
-      // let max = 0;
-      // for (let i=0; i<columns.length; i++) {
-      //     for (let j=0; j<diet.length; j++) {
-      //         max = Math.max( max, diet[j][columns[i]] );
-      //     }
-      // }
-      // let sc = d3.scaleLinear().domain([0,max]).range([0,95]);
-      // 
-      // let bars = d3.select("#barchart");
-      // for (let j=0; j<diet.length; j++) {
-      //     // Nation Labels
-      //     bars.append("text").text(diet[j].Nation).attr("x",200+(j*100)).attr("y",20);
-      // }
-      // // PC Labels
-      // bars.append("text").style("text-anchor","middle").text( "PC1" ).attr("x",640).attr("y",20);
-      // bars.append("text").style("text-anchor","middle").text( "PC2" ).attr("x",720).attr("y",20);
-      // 
-      // // Make some bars
-      // for (let i=0; i<columns.length; i++) {
-      //     let layer = bars.append("g").attr("transform","translate(0,"+(30+(i*30))+")");
-      //     layer.append("text").text(columns[i]).attr("x",0).attr("y",20);
-      // 
-      //     for (let j=0; j<diet.length; j++) {
-      //         layer.append("rect").style("fill", "steelblue")
-      //                             .attr("x",200+(j*100))
-      //                             .attr("y",5)
-      //                             .attr("height",20)
-      //                             .attr("width", sc(diet[j][columns[i]]));
-      //     }
-      // 
-      //     // Labels for PCA vectors
-      //     layer.append("text").style("text-anchor","middle").text( toFixed(pc1[i],2) ).attr("x",640).attr("y",20);
-      //     layer.append("text").style("text-anchor","middle").text( toFixed(pc2[i],2) ).attr("x",720).attr("y",20);
-      // 
-      // 
-      // }
+      columns = ["Alcoholic Drinks", "Beverages", "Carcase Meat", "Cereals", "Cheese", "Confectionary", "Fats", "Fish", "Fresh fruit", "Fresh potatoes", "Fresh veggies", "Other meat", "Other veggies", "Processed potatoes", "Processed veggies", "Soft drinks", "Sugars"]
+      const diet = await d3.csv("../datasets/diet.csv", d3.autoType);
+      console.log(diet)
+      console.log(diet.columns)
+      
+      // Compute Principal Components
+      let raw = [];
+      diet.forEach( d => {
+        row = [];
+        for (let i=0; i<columns.length; i++) {
+            row.push( d[columns[i]] );
+        }
+        raw.push(row);
+      });
+      console.log(raw);
+      
+      console.log(raw_data);
+      eigenvectors = PCA.getEigenVectors(raw);
+      adjusted_d = PCA.computeDeviationMatrix(raw);
+      variance = PCA.computeDeviationScores(adjusted_d);
+      cov = PCA.computeVarianceCovariance(variance);
+      console.log(eigenvectors);
+      console.log(cov);
+      console.log(PCA.computePercentageExplained(eigenvectors, eigenvectors[0]));
+      console.log(PCA.computePercentageExplained(eigenvectors, eigenvectors[1]));
+      
+      let pc1 = eigenvectors[0].vector;
+      let pc2 = eigenvectors[1].vector;
+      
+      
+      
+      // Draw a simple bar chart for all data and PC
+      
+      // Find min/max
+      let max = 0;
+      for (let i=0; i<columns.length; i++) {
+          for (let j=0; j<diet.length; j++) {
+              max = Math.max( max, diet[j][columns[i]] );
+          }
+      }
+      let sc = d3.scaleLinear().domain([0,max]).range([0,95]);
+      
+      let bars = d3.select("#barchart");
+      for (let j=0; j<diet.length; j++) {
+          // Nation Labels
+          bars.append("text").text(diet[j].Nation).attr("x",200+(j*100)).attr("y",20);
+      }
+      // PC Labels
+      bars.append("text").style("text-anchor","middle").text( "PC1" ).attr("x",640).attr("y",20);
+      bars.append("text").style("text-anchor","middle").text( "PC2" ).attr("x",720).attr("y",20);
+      
+      // Make some bars
+      for (let i=0; i<columns.length; i++) {
+          let layer = bars.append("g").attr("transform","translate(0,"+(30+(i*30))+")");
+          layer.append("text").text(columns[i]).attr("x",0).attr("y",20);
+      
+          for (let j=0; j<diet.length; j++) {
+              layer.append("rect").style("fill", "steelblue")
+                                  .attr("x",200+(j*100))
+                                  .attr("y",5)
+                                  .attr("height",20)
+                                  .attr("width", sc(diet[j][columns[i]]));
+          }
+      
+          // Labels for PCA vectors
+          layer.append("text").style("text-anchor","middle").text( toFixed(pc1[i],2) ).attr("x",640).attr("y",20);
+          layer.append("text").style("text-anchor","middle").text( toFixed(pc2[i],2) ).attr("x",720).attr("y",20);
+      
+      
+      }
       
       // Make a PC chart!
       

@@ -423,6 +423,8 @@
   <script id="eigens">
   
     let mixture = { s1: 2, s2: 4 };
+    // ev1 is 100, 300 ; ev2 is 200, 100
+    // eval1 is 1.1, eval2 is 0.9
   
     var points2 = [];
     // Calculate for T values from -10 to 10, every 0.5t
@@ -432,8 +434,8 @@
         
         points2.push({
           // What goes here?
-          coyotes: 0,
-      roadrunners: 0,
+          coyotes: 200 * Math.pow(1.1, t) + 800 * Math.pow(0.9, t),
+      roadrunners: 600 * Math.pow(1.1, t) + 400 * Math.pow(0.9, t),
           
         });
       
@@ -468,6 +470,26 @@
     
     // Let's draw lines for a variety of different initial states using the formulas we wrote earlier
     var points3 = [];
+    for (let vec1 = 0; vec1 <= 5; vec1 = vec1 + 0.5) {
+      for (let vec2 = 0; vec2 <= 5; vec2 = vec2 + 0.5) {
+        
+        let lst = [];
+        for (let t = -100; t <= 100; t = t + 0.5) {
+        
+          lst.push({
+            coyotes: (100 * vec1 * Math.pow(1.1, t)) + (200 * vec2 * Math.pow(0.9, t)),
+            roadrunners: (300 * vec1 * Math.pow(1.1, t)) + (100 * vec2 * Math.pow(0.9, t)),
+          });
+        
+        }
+        points3.push(lst);
+      }
+    }
+    
+    
+    
+    //coyotes: 200 * Math.pow(1.1, t) + 800 * Math.pow(0.9, t),
+    //roadrunners: 600 * Math.pow(1.1, t) + 400 * Math.pow(0.9, t),
     
     
     
