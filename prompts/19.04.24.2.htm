@@ -1,5 +1,5 @@
 <html><head>
-<title>INFO 3300 - April 19</title>
+<title>INFO 3300 - April 24</title>
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
 
@@ -27,11 +27,16 @@
       fill: none;
     }
     
-    line {
+    .dashed {
       stroke: #888;
       stroke-width: 1px;
       fill: none;
       stroke-dasharray: 2;
+    }
+    .solid {
+      stroke: #888;
+      stroke-width: 1px;
+      fill: none;
     }
     
     .eigen {
@@ -39,6 +44,22 @@
       fill: none;
       stroke-dasharray: none;
       marker-end: url(#arrow);
+    }
+    
+    .vect {
+      stroke-width: 3px;
+      fill: none;
+      stroke: #3e0d75;
+      opacity: 0.8;
+      marker-end: url(#smallArrow);
+    }
+    #smallArrow {
+      fill: #3e0d75;
+      stroke: none;
+      stroke-width: 0;
+    }
+    .label {
+      font-size: 14px;
     }
     
     #transform text {
@@ -70,7 +91,7 @@
 </head>
 <body>
   <div class="container larger">
-  <h3>Prompt for April 19</h3>
+  <h3>Prompt for April 24</h3>
   <p>Linear Algebra: How do matrices work? Do they work on coordinates?? Let's find out! </p>
   <p>Nicky Case (creator of a <a href="https://ncase.me/">ton of cool demos</a> and the <a href="https://ncase.me/cos/">Coming Out Simulator</a>) has a great <a href="https://ncase.me/matrix/">interactive demo</a> for transformation matrices.</p>
   <p>Refer back to our notes on <a href="notes/19.03.08.notes.htm">linear regression</a>.</p>
@@ -87,18 +108,18 @@
     <svg width=900 height=480 id="transform">
       <g transform="translate(0,0)" id="transformY">
         <rect x=0 y=0 width=50 height=400 />
-        <line x1=0 x2=50 y1=200 y2=200 />
+        <line x1=0 x2=50 y1=200 y2=200 class="dashed" />
         <g transform="translate(0,0)" class="axis"></g>
       </g>
       <g transform="translate(70,430)" id="transformX">
         <rect x=0 y=0 width=400 height=50 />
-        <line x1=200 x2=200 y1=0 y2=50 />
+        <line x1=200 x2=200 y1=0 y2=50 class="dashed" />
         <g transform="translate(0,40)" class="axis"></g>
       </g>
       <g transform="translate(70,0)" id="transformPlot">
         <rect x=0 y=0 width=400 height=400 />
-        <line x1=0 x2=400 y1=200 y2=200 />
-        <line x1=200 x2=200 y1=0 y2=400 />
+        <line x1=0 x2=400 y1=200 y2=200 class="dashed" />
+        <line x1=200 x2=200 y1=0 y2=400 class="dashed" />
       </g>
       <g transform="translate(500,30)" id="inMatrix">
         <path d="M10,0 H0 V100 H10" class="bracket" />
@@ -130,33 +151,62 @@
   
   <h5>Visualizing Principal Components</h5>
   
-  <svg width=850 height=150 id="transform">
-    <g transform="translate(0,40)" id="cov">
+  <svg width=850 height=200 id="transform">
+    <g transform="translate(25,80)" id="cov">
+      <text x=60 y=-40 class="smallLabel">Covariance</text>
+      <text x=-15 y=35 class="smallLabel">X</text>
+      <text x=-15 y=85 class="smallLabel">Y</text>
+      <text x=50 y=-10 class="smallLabel">X</text>
+      <text x=140 y=-10 class="smallLabel">Y</text>
       <path d="M10,0 H0 V100 H10" class="bracket" />
       <text x=50 y=35 class="x1">X1</text>
       <text x=50 y=85 class="x2">X2</text>
       <text x=140 y=35 class="y1">Y1</text>
       <text x=140 y=85 class="y2">Y2</text>
       <path d="M180,0 H190 V100 H180" class="bracket" />
-      <text x=60 y=-10 class="smallLabel">Covariance</text>
     </g>
-    <g transform="translate(330,40)" id="vect0">
-      <text x=-60 y=35 class="val">0.987 = </text>
-      <path d="M10,0 H0 V50 H10" class="bracket" />
-      <text x=40 y=35 class="x">X</text>
-      <text x=120 y=35 class="y">Y</text>
-      <path d="M150,0 H160 V50 H150" class="bracket" />
-      <text x=-60 y=-10 class="smallLabel">PC1</text>
-    </g>
-    <g transform="translate(600,40)" id="vect1">
-      <text x=-60 y=35 class="val">0.987 = </text>
-      <path d="M10,0 H0 V50 H10" class="bracket" />
-      <text x=40 y=35 class="x">X</text>
-      <text x=120 y=35 class="y">Y</text>
-      <path d="M150,0 H160 V50 H150" class="bracket" />
-      <text x=-60 y=-10 class="smallLabel">PC2</text>
+    <g transform="translate(325,80)" id="eigv">
+      <text x=60 y=-40 class="smallLabel">Eigenvalues</text>
+      <text x=-15 y=35 class="smallLabel">X</text>
+      <text x=-15 y=85 class="smallLabel">Y</text>
+      <text x=50 y=-10 class="smallLabel">X</text>
+      <text x=140 y=-10 class="smallLabel">Y</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=50 y=35 class="ev1">X1</text>
+      <text x=50 y=85>0</text>
+      <text x=140 y=35>0</text>
+      <text x=140 y=85 class="ev2">Y2</text>
+      <path d="M180,0 H190 V100 H180" class="bracket" />
     </g>
   </svg>
+  <p>In Principlal Components Analysis, we use a covariance matrix. Values on the diagonal show the variance for an individual data attribute, and other elements show attribute-attribute relationships (and are related to correlation).</p>
+  <p>We use <a href="http://web.cs.iastate.edu/~cs577/handouts/svd.pdf">singular value decomposition</a> to identify the eigenvalues for the covariance matrix. It gives us a matrix with eigenvalues along the diagonal. In effect, this lets us pull out relationships between variables piece by piece and construct a new coordinate system. The zeroes in the eigenvalues matrix suggest that each eigenvector is <strong>independent</strong> of the others (i.e. they are at right angles when you chart them), capturing different relationships in the data. We can then multiply matrices to get the eigenvectors, which traditionally are normalized so they have a length of 1. These are the principal components.</p>
+  <svg width=850 height=150 id="transform">
+    <g transform="translate(120,80)" id="vect0">
+      <text x=40 y=-10 class="smallLabel">X</text>
+      <text x=120 y=-10 class="smallLabel">Y</text>
+      <text x=-60 y=-10 class="smallLabel">% Var.</text>
+      <text x=-60 y=35 class="val">0.987 = </text>
+      <path d="M10,0 H0 V50 H10" class="bracket" />
+      <text x=40 y=35 class="x">X</text>
+      <text x=120 y=35 class="y">Y</text>
+      <path d="M150,0 H160 V50 H150" class="bracket" />
+      <text x=-60 y=-45>PC1</text>
+    </g>
+    <g transform="translate(450,80)" id="vect1">
+      <text x=40 y=-10 class="smallLabel">X</text>
+      <text x=120 y=-10 class="smallLabel">Y</text>
+      <text x=-60 y=-10 class="smallLabel">% Var.</text>
+      <text x=-60 y=35 class="val">0.987 = </text>
+      <path d="M10,0 H0 V50 H10" class="bracket" />
+      <text x=40 y=35 class="x">X</text>
+      <text x=120 y=35 class="y">Y</text>
+      <path d="M150,0 H160 V50 H150" class="bracket" />
+      <text x=-60 y=-45>PC2</text>
+    </g>
+  </svg>
+  <p>Let's chart the eigenvectors over our original points, then apply the eigenvectors to our data and see how they change<br/>
+  Remember that we need to center the points (subtract means from point positions) to make use of the eigenvectors.</p>
   <div id="plotContainer">
     <svg width=850 height=400>
       <defs>
@@ -167,20 +217,34 @@
         </marker>
       </defs>
       <g transform="translate(0,0)" id="eigen1">
-        <line x1=0 x2=400 y1=200 y2=200 />
-        <line x1=200 x2=200 y1=0 y2=400 />
+        <line x1=0 x2=400 y1=200 y2=200 class="dashed" />
+        <line x1=200 x2=200 y1=0 y2=400 class="dashed" />
+        <text x=5 y=195 class="smallLabel">X</text>
+        <text x=205 y=395 class="smallLabel">Y</text>
       </g>
       <g transform="translate(450,0)" id="eigen2">
-        <line x1=0 x2=400 y1=200 y2=200 />
-        <line x1=200 x2=200 y1=0 y2=400 />
+        <line x1=0 x2=400 y1=200 y2=200 class="dashed" />
+        <line x1=200 x2=200 y1=0 y2=400 class="dashed" />
+        <text x=5 y=195 class="smallLabel">PC1</text>
+        <text x=205 y=395 class="smallLabel">PC2</text>
       </g>
   </div>
   
   <h5>Complex Example</h5>
-  <svg width=850 height=550 id="barchart"></svg>
+  <p>Let's do a PCA for a dataset of Olympic decathletes. Can we identify major factors that drive athlete performance across a bunch of different athletic events? PCA will let us examine relationships across different sports all at once. The data appear below in raw form, but for the PCA we will scale them all using the mean/std so that big values don't distort the components.
+  <svg width=850 height=550 id="datchart"></svg>
   <p>Charting by PC1 and PC2:</p>
   
-  <svg width=400 height=400 id="pcchart"></svg>
+  <svg width=450 height=450 id="pcchart"></svg>
+  <svg width=450 height=450 id="varchart">
+    <defs>
+      <marker id="smallArrow" viewbox="0 0 6 6" refX="3" refY="3"
+          markerWidth="3" markerHeight="3"
+          orient="auto-start-reverse">
+        <path d="M 0 0 L 6 3 L 0 6 z" />
+      </marker>
+    </defs>
+  </svg>
   
   
 
@@ -233,6 +297,8 @@
     var points = generateDataWith(1, 0.5, 0.2, 10);
     // ***
     
+    // In order to get principal components, the data need to be centered
+    //  (They also need to have relatively similar scale variance, which we'll get to later)
     let meanX = 0;
     let meanY = 0;
     points.forEach( d => {
@@ -246,7 +312,7 @@
     points.forEach( d => {
       adjustedPoints.push({ x: d.x - meanX, 
                             y: d.y - meanY, 
-                            orig_x: d.x - meanX, 
+                            orig_x: d.x - meanX, // store starting state as we mutate x and y
                             orig_y: d.y - meanY 
                           });
     });
@@ -254,23 +320,24 @@
     
     
     
-    // Use the PCA library to get principle components
+    // Use the PCA library to get principal components
     let raw_data = points.map( d => [d.x, d.y] );
     let adjusted_d = PCA.computeDeviationMatrix(raw_data);
     let variance = PCA.computeDeviationScores(adjusted_d);
     let cov = PCA.computeVarianceCovariance(variance);
-    console.log(cov);
     
     let eigenvectors = PCA.getEigenVectors(raw_data);
+    console.log("Library output for Eigenvectors");
     console.log(eigenvectors);
     
     
-    
-    // Chart covariate
+    // Chart covariate and eigenvalues
     d3.select("#cov .x1").text( toFixed(cov[0][0], 2) );
     d3.select("#cov .x2").text( toFixed(cov[0][1], 2) );
     d3.select("#cov .y1").text( toFixed(cov[1][0], 2) );
     d3.select("#cov .y2").text( toFixed(cov[1][1], 2) );
+    d3.select("#eigv .ev1").text( toFixed(eigenvectors[0].eigenvalue, 2) );
+    d3.select("#eigv .ev2").text( toFixed(eigenvectors[1].eigenvalue, 2) );
     
     // Show numbers for principal components
     let totalvariance = eigenvectors[0].eigenvalue + eigenvectors[1].eigenvalue;
@@ -284,13 +351,14 @@
     
     
     
-    // Visualize the principle components on a chart as arrows
+    // ----- Visualize the principal components on a chart as arrows -----
     let eigenPlot = d3.select("#eigen1");
     let eigenWidth = 400;
     let eigenHeight = 400;
     let eigenXScale = d3.scaleLinear().domain([-3, 3]).range([0,eigenWidth]);
     let eigenYScale = d3.scaleLinear().domain([-3, 3]).range([eigenHeight,0]);
     
+    // --- First plot: Show the points normally and add in arrows for the components
     // Draw circles
     raw_data.forEach( d => {
       eigenPlot.append("circle")
@@ -300,28 +368,29 @@
           .attr("cy", eigenYScale(d[1]));
     });
     
-    // Draw an arrow for each principle component
-    let eigenColors = d3.scaleOrdinal(d3.schemeCategory10);
+    // Draw an arrow for each principal component
+    let eigenColors = d3.scaleOrdinal(d3.schemeCategory10); // so we can color the arrows differently
     eigenvectors.forEach( d => {
       
-      // What goes here?
-      let xPosition = 0;
-      let yPosition = 0;
+      // The arrows start at the mean, because we normally would center data there to apply the components to the data
+      let xPosition = meanX;
+      let yPosition = meanY;
+      
       
       eigenPlot.append("line")
           .style("stroke", eigenColors(d.eigenvalue))
           .attr("class", "eigen")
-          // What goes here?
-          .attr("x1", 0)
-          .attr("x2", 0)
-          .attr("y1", 0)
-          .attr("y2", 0);
+          .attr("x1", eigenXScale(xPosition))
+          .attr("y1", eigenYScale(yPosition))
+          // The other position is just the components of the vector, which correspond to transformations to X and Y
+          .attr("x2", eigenXScale(xPosition + d.vector[0]))
+          .attr("y2", eigenYScale(yPosition + d.vector[1]));
       
     });
     
     
     
-    // Visualize the principal components, but shift the coordinate system to the PCs
+    // --- Second plot: Visualize the principal components, but apply the PCs to the points
     eigenPlot = d3.select("#eigen2");
     eigenWidth = 400;
     eigenHeight = 400;
@@ -332,12 +401,14 @@
     // Draw circles
     raw_data.forEach( d => {
       
-      // What goes here?
-      let xStart = 0;
-      let yStart = 0;
+      // Apply the PCs to the datapoints
+      //  First, center the data
+      let xStart = d[0] - meanX;
+      let yStart = d[1] - meanY;
       
-      let xTrans = 0;
-      let yTrans = 0;
+      // Then shift based on the PC eigenvector
+      let xTrans = xStart * eigenvectors[0].vector[0] + yStart * eigenvectors[0].vector[1];
+      let yTrans = xStart * eigenvectors[1].vector[0] + yStart * eigenvectors[1].vector[1];
       
       eigenPlot.append("circle")
           .attr("r", 5)
@@ -346,19 +417,23 @@
           .attr("cy", eigenYScale(yTrans));
     });
     
-    // Draw an arrow for each principle component
+    // Draw an arrow for each principal component
+    //  Because we are now in PC "space", we need to also transform the PC coordinates
+    //  The diagonal arrows on the first plot become...
     eigenColors = d3.scaleOrdinal(d3.schemeCategory10);
     eigenvectors.forEach( d => {
       
+      // How do we apply the PCs to our PC vectors?
+      //   Starting points for the lines, then transformed
       let xStart1 = 0;
       let yStart1 = 0;
-      let xTrans1 = 0;
-      let yTrans1 = 0;
-      
-      let xStart2 = 0;
-      let yStart2 = 0;
-      let xTrans2 = 0;
-      let yTrans2 = 0;
+      let xTrans1 = xStart1 * eigenvectors[0].vector[0] + yStart1 * eigenvectors[0].vector[1];
+      let yTrans1 = xStart1 * eigenvectors[1].vector[0] + yStart1 * eigenvectors[1].vector[1];
+      //   Ending points for the lines, then transformed
+      let xStart2 = d.vector[0];
+      let yStart2 = d.vector[1];
+      let xTrans2 = xStart2 * eigenvectors[0].vector[0] + yStart2 * eigenvectors[0].vector[1];
+      let yTrans2 = xStart2 * eigenvectors[1].vector[0] + yStart2 * eigenvectors[1].vector[1];
       
       eigenPlot.append("line")
           .style("stroke", eigenColors(d.eigenvalue))
@@ -379,87 +454,232 @@
     
   
     const requestData = async () => {
-      // Import some data on UK diet
-      // columns = ["Alcoholic Drinks", "Beverages", "Carcase Meat", "Cereals", "Cheese", "Confectionary", "Fats", "Fish", "Fresh fruit", "Fresh potatoes", "Fresh veggies", "Other meat", "Other veggies", "Processed potatoes", "Processed veggies", "Soft drinks", "Sugars"]
-      // const diet = await d3.csv("../datasets/diet.csv", d3.autoType);
-      // console.log(diet)
-      // console.log(diet.columns)
-      // 
-      // // Compute Principal Components
-      // let raw = [];
-      // diet.forEach( d => {
-      //   row = [];
-      //   for (let i=0; i<columns.length; i++) {
-      //       row.push( d[columns[i]] );
-      //   }
-      //   raw.push(row);
-      // });
-      // console.log(raw);
-      // 
-      // console.log(raw_data);
-      // eigenvectors = PCA.getEigenVectors(raw);
-      // adjusted_d = PCA.computeDeviationMatrix(raw);
-      // variance = PCA.computeDeviationScores(adjusted_d);
-      // cov = PCA.computeVarianceCovariance(variance);
-      // console.log(eigenvectors);
-      // console.log(cov);
-      // console.log(PCA.computePercentageExplained(eigenvectors, eigenvectors[0]));
-      // console.log(PCA.computePercentageExplained(eigenvectors, eigenvectors[1]));
-      // 
-      // let pc1 = eigenvectors[0].vector;
-      // let pc2 = eigenvectors[1].vector;
-      // 
-      // 
-      // 
-      // // Draw a simple bar chart for all data and PC
-      // 
-      // // Find min/max
-      // let max = 0;
-      // for (let i=0; i<columns.length; i++) {
-      //     for (let j=0; j<diet.length; j++) {
-      //         max = Math.max( max, diet[j][columns[i]] );
-      //     }
-      // }
-      // let sc = d3.scaleLinear().domain([0,max]).range([0,95]);
-      // 
-      // let bars = d3.select("#barchart");
-      // for (let j=0; j<diet.length; j++) {
-      //     // Nation Labels
-      //     bars.append("text").text(diet[j].Nation).attr("x",200+(j*100)).attr("y",20);
-      // }
-      // // PC Labels
-      // bars.append("text").style("text-anchor","middle").text( "PC1" ).attr("x",640).attr("y",20);
-      // bars.append("text").style("text-anchor","middle").text( "PC2" ).attr("x",720).attr("y",20);
-      // 
-      // // Make some bars
-      // for (let i=0; i<columns.length; i++) {
-      //     let layer = bars.append("g").attr("transform","translate(0,"+(30+(i*30))+")");
-      //     layer.append("text").text(columns[i]).attr("x",0).attr("y",20);
-      // 
-      //     for (let j=0; j<diet.length; j++) {
-      //         layer.append("rect").style("fill", "steelblue")
-      //                             .attr("x",200+(j*100))
-      //                             .attr("y",5)
-      //                             .attr("height",20)
-      //                             .attr("width", sc(diet[j][columns[i]]));
-      //     }
-      // 
-      //     // Labels for PCA vectors
-      //     layer.append("text").style("text-anchor","middle").text( toFixed(pc1[i],2) ).attr("x",640).attr("y",20);
-      //     layer.append("text").style("text-anchor","middle").text( toFixed(pc2[i],2) ).attr("x",720).attr("y",20);
-      // 
-      // 
-      // }
       
-      // Make a PC chart!
+      // Import some data from the decathlon event in the Olympics
+      //  Data care of the FactoMineR package for R: http://factominer.free.fr/
+      raw_columns = ["100m", "LongJump", "ShotPut", "HighJump", "400m", "110mHurdle", "Discus", "PoleVault", "Javeline", "1500m", "Rank", "Points"];
+      pca_columns = ["100m", "LongJump", "ShotPut", "HighJump", "400m", "110mHurdle", "Discus", "PoleVault", "Javeline", "1500m"]
+      const decathlon = await d3.csv("../datasets/decathlon.csv", d3.autoType);
+      console.log("Decathlon data");
+      console.log(decathlon);
+      
+      // Raw data are in RAW. columns. The other columns contain _scaled_ data
+      //  This is important because the RAW data have very different ranges -- this means their variance will also differ
+      //  In practice, this can cause the high variance variables to swamp the principal components
+      //  So we often normalize or standardize the data in some way in addition to centering it
+      
+      // ----- Compute Principal Components -----
+      
+      // First make a simple 2d data array
+      let plain_dat = [];
+      decathlon.forEach( d => {
+        row = [];
+        for (let i=0; i<pca_columns.length; i++) {
+            row.push( d[pca_columns[i]] );
+        }
+        plain_dat.push(row);
+      });
+      
+      eigenvectors = PCA.getEigenVectors(plain_dat);
+      adjusted_d = PCA.computeDeviationMatrix(plain_dat);
+      variance = PCA.computeDeviationScores(adjusted_d);
+      cov = PCA.computeVarianceCovariance(variance);
+      
+      console.log("Covariance");
+      console.log(cov);
+      console.log("Resulting eigenvectors");
+      console.log(eigenvectors);
+      
+      // Generally we make use of the first two PCs -- they capture the most variance in the data
+      let pc1 = eigenvectors[0].vector;
+      let pc2 = eigenvectors[1].vector;
       
       
+      // ----- Draw simple charts for all data and PC vectors -----
+      let charts = d3.select("#datchart");
+      let nameLabel = charts.append("text").attr("x",100).attr("y",25).style("text-anchor","start");
+      charts.append("text").style("text-anchor","middle").text( "PC1" ).attr("x",555).attr("y",30);
+      charts.append("text").style("text-anchor","middle").text( "PC2" ).attr("x",615).attr("y",30);
+    
+      // Loop through columns and add some charts
+      for (let i=0; i<raw_columns.length; i++) {
+        
+          // Find extent for this column
+          let extent = d3.extent( decathlon.map( d => d[raw_columns[i]] ) );
+          // Add a scale for column i 
+          let scale = d3.scaleLinear().domain(extent).range([10,390]);
+          
+          // Make a box
+          let layer = charts.append("g").attr("transform","translate(0,"+(30+(i*40))+")");
+          layer.append("text").text(raw_columns[i]).attr("x",100).attr("y",25).style("text-anchor","end");
+          layer.append("rect").attr("x", 110).attr("y",5).attr("width",400).attr("height",30);
+          
+          // More dots
+          layer.selectAll("circle").data(decathlon)
+               .enter().append("circle")
+               .attr("r", 4)
+               .attr("identifier", (d,i) => i ) // This is a clever trick to assign the point index to the class for cross-referencing
+               .attr("class", "highlight" ) 
+               .attr("origFill", "steelblue" )
+               .attr("origOpacity", 0.4 )
+               .style("stroke","none").attr("opacity",0.4)
+               .attr("cx", d => 110 + scale( d[raw_columns[i]] ) )
+               .attr("cy", () => 18 + (Math.random()*4)) // we have to use a function here in order to make Math.random() run for each circle
+               .on("mouseover", function() {
+                 // On mouseover, use the fancy attribute trick to highlight the datapoint on all the charts
+                 //  To select by attribute, use the syntax [attribute='stuff']
+                 let id = d3.select(this).attr("identifier");
+                 d3.selectAll(".highlight[identifier='"+id+"']").attr("opacity", 1).style("fill", "red");
+                 let name = d3.select(this).data()[0]["Name"];
+                 nameLabel.text(name);
+               })
+               .on("mouseout", function() {
+                 // Reset appearance
+                 d3.selectAll(".highlight")
+                        .attr("opacity", function() { return d3.select(this).attr("origOpacity");})
+                        .style("fill", function() { return d3.select(this).attr("origFill");} );
+                 nameLabel.text("");
+               });
+          
+          // Stop dots, 50DKP minus
+          
+          
+          // Text for PCA loadings
+          //   if statement hack here because we don't use rank and points in PCA model
+          if (i < raw_columns.length - 2) {
+            layer.append("text").style("text-anchor","end").text( toFixed(pc1[i],2) ).attr("x",570).attr("y",25);
+            layer.append("text").style("text-anchor","end").text( toFixed(pc2[i],2) ).attr("x",630).attr("y",25);
+          }
+          
+      }
       
       
       
       
       
+      // ----- Make a basic PCA chart for data points and identify the medal winners -----
+      // Make a new dataset that has an X and Y position for each point's PCA values
+      let transformed_data = [];
+      decathlon.forEach( d => {
+        
+        // What goes here?
+        let tX = 0; // PC1
+        let tY = 0; // PC2
+        
+        
+
+        transformed_data.push( { x: tX, y: tY, rank: d["RAW.Rank"] } );
+
+      });
+      console.log("PC transformed dataset");
+      console.log(transformed_data);
       
+      
+      let scaleTX = d3.scaleLinear().domain( d3.extent(transformed_data, d=>d.x) ).range([10,390]);
+      let scaleTY = d3.scaleLinear().domain( d3.extent(transformed_data, d=>d.y) ).range([390,10]);
+      let colorRank = d3.scaleLinear().domain( d3.extent(transformed_data, d=>d.rank) ).range(["gold", "steelblue"]);
+      
+      let scatter = d3.select("#pcchart").append("g").attr("transform","translate(20,0)");
+      // one line axes declarations!
+      scatter.append("g").attr("transform","translate(0,"+scaleTY(0)+")").call( d3.axisBottom( scaleTX ).tickFormat("") );
+      scatter.append("g").attr("transform","translate("+scaleTX(0)+",0)").call( d3.axisLeft( scaleTY ).tickFormat("") );
+      
+      scatter.selectAll("circle").data(transformed_data)
+           .enter().append("circle")
+           .attr("r", 4)
+           .attr("identifier", (d,i) => i ) // This is a clever trick to assign the point index to the class for cross-referencing
+           .attr("class", "highlight" ) 
+           .attr("origFill", d => colorRank(d.rank) )
+           .style("fill", d => colorRank(d.rank) )
+           .style("stroke","none")
+           .attr("opacity",1)
+           .attr("origOpacity", 1 )
+           .attr("cx", d => scaleTX( d.x ) )
+           .attr("cy", d => scaleTY( d.y ) )
+           .on("mouseover", function() {
+             // On mouseover, use the fancy attribute trick to highlight the datapoint on all the charts
+             //  To select by attribute, use the syntax [attribute='stuff']
+             let id = d3.select(this).attr("identifier");
+             d3.selectAll(".highlight[identifier='"+id+"']").attr("opacity", 1).style("fill", "red");
+             let name = d3.select(this).data()[0]["Name"];
+             nameLabel.text(name);
+           })
+           .on("mouseout", function() {
+             // Reset appearance
+             d3.selectAll(".highlight")
+                    .attr("opacity", function() { return d3.select(this).attr("origOpacity");})
+                    .style("fill", function() { return d3.select(this).attr("origFill");} );
+             nameLabel.text("");
+           });
+      
+      
+      // Add labels to show the % of variance captured by the components
+      let percentPC1 = PCA.computePercentageExplained(eigenvectors, eigenvectors[0]) * 100;
+      let percentPC2 = PCA.computePercentageExplained(eigenvectors, eigenvectors[1]) * 100;
+      d3.select("#pcchart").append("text")
+            .style("text-anchor","middle")
+            .attr("x", 220)
+            .attr("y", 415)
+            .text("PC1 ("+toFixed(percentPC1,1)+"% variance explained)")
+      d3.select("#pcchart").append("text")
+            .attr("transform","rotate(-90)")
+            .style("text-anchor","middle")
+            .attr("x", -200)
+            .attr("y", 15)
+            .text("PC2 ("+toFixed(percentPC2,1)+"% variance explained)")
+      
+      
+      
+      // ----- Map the variables themselves to show how the PCs work
+      
+      let unitScaleX = d3.scaleLinear().domain([-1.2,1.2]).range([10,390]);
+      let unitScaleY = d3.scaleLinear().domain([-1.2,1.2]).range([390,10]);
+      
+      let map = d3.select("#varchart").append("g").attr("transform","translate(20,0)");
+      map.append("circle").attr("class","dashed").attr("cx",unitScaleX(0)).attr("cy",unitScaleY(0)).attr("r",(unitScaleX(1)-unitScaleX(-1))/2.0 );
+      // one line axes
+      map.append("g").attr("transform","translate(0,"+unitScaleY(0)+")").call( d3.axisBottom( unitScaleX ).tickFormat("") );
+      map.append("g").attr("transform","translate("+unitScaleX(0)+",0)").call( d3.axisLeft( unitScaleY ).tickFormat("") );
+      // labels
+      d3.select("#varchart").append("text")
+            .style("text-anchor","middle")
+            .attr("x", 220)
+            .attr("y", 415)
+            .text("PC1 ("+toFixed(percentPC1,1)+"% variance explained)")
+      d3.select("#varchart").append("text")
+            .attr("transform","rotate(-90)")
+            .style("text-anchor","middle")
+            .attr("x", -200)
+            .attr("y", 15)
+            .text("PC2 ("+toFixed(percentPC2,1)+"% variance explained)")
+      
+      // create dataset of vectors based on PCA loadings
+      let vectors = [];
+      for (let i=0; i<pca_columns.length; i++) {
+          
+          // What goes here?
+          vectors.push( { 
+            name: pca_columns[i], 
+            x: 0, 
+            y: 0 
+          } );
+          
+      }
+      
+      map.selectAll(".vect").data(vectors)
+          .enter().append("line")
+          .attr("class","vect")
+          .attr("x1",unitScaleX(0))
+          .attr("x2", d => unitScaleX(d.x))
+          .attr("y1",unitScaleY(0))
+          .attr("y2", d => unitScaleY(d.y))
+          
+      map.selectAll(".label").data(vectors)
+          .enter().append("text")
+          .attr("class","label")
+          .attr("x", d => unitScaleX(d.x))
+          .attr("y", d => (d.y > 0) ? unitScaleY(d.y) - 10 : unitScaleY(d.y) + 10 )
+          .text( d => d.name );
       
       
       
@@ -724,12 +944,12 @@
 
   // Our regression model
   let clickableModel = { intercept: 1, slope: 0 };  // hardcoding a bit of intercept to illustrate a PCA concept
-  clickSVG.append("line").attr("stroke","lightgrey")
+  clickSVG.append("line").attr("stroke","lightgrey").attr("class","dashed")
     .attr("x1", xScale(0))
     .attr("x2", xScale(0))
     .attr("y1", yScale(-3))
     .attr("y2", yScale(3))
-  clickSVG.append("line").attr("stroke","lightgrey")
+  clickSVG.append("line").attr("stroke","lightgrey").attr("class","dashed")
     .attr("x1", xScale(-3))
     .attr("x2", xScale(3))
     .attr("y1", yScale(0))
