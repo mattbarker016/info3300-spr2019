@@ -566,8 +566,12 @@
         let tX = 0; // PC1
         let tY = 0; // PC2
         
+        for (let i=0; i<pca_columns.length; i++) {
+          let value = d[ pca_columns[i] ];
+          tX = tX + value * pc1[i];
+          tY = tY + value * pc2[i];
+        }
         
-
         transformed_data.push( { x: tX, y: tY, rank: d["RAW.Rank"] } );
 
       });
@@ -660,8 +664,8 @@
           // What goes here?
           vectors.push( { 
             name: pca_columns[i], 
-            x: 0, 
-            y: 0 
+            x: pc1[i], 
+            y: pc2[i] 
           } );
           
       }
