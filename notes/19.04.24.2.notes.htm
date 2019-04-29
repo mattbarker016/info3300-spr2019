@@ -245,7 +245,7 @@
       </marker>
     </defs>
   </svg>
-  
+  <p>(Yes, this chart has lots of bad label positions.)</p>
   
 
 
@@ -493,6 +493,14 @@
       // Generally we make use of the first two PCs -- they capture the most variance in the data
       let pc1 = eigenvectors[0].vector;
       let pc2 = eigenvectors[1].vector;
+      
+      // HACK: PC1 and PC2 have some negative coefficients which might make the charts confusing
+      //  We'll invert them to make the charts a bit more legible
+      for (let i=0; i<pca_columns.length; i++) {
+        pc1[i] = -pc1[i];
+        pc2[i] = -pc2[i];
+      }
+      
       
       
       // ----- Draw simple charts for all data and PC vectors -----
