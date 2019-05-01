@@ -85,6 +85,7 @@
     let zScale = d3.scaleLinear().domain(d3.extent(testScores, d=>d['HDI'])).range( [-200,200] );
     let sizeScale = d3.scaleLinear().domain(d3.extent(testScores, d=>d['Inequality'])).range( [1,2] );
     let colorScale = d3.scaleLinear().domain(d3.extent(testScores, d=>d['PISA'])).range( ["gold", "steelblue"] );
+    
     let data = [];
     testScores.forEach( d=> {
       color = d3.rgb(colorScale(d['PISA']));
@@ -102,116 +103,191 @@
     
     
     // 1. Initialize three.js scene using plain HTML
-    // Place for scene to live
     let container = document.getElementById("plotContainer");
     let width = 800;
     let height = 500;
     
     // THREE scene object
-    let scene;
+    // Place for scene to live -- wrapper for all 3d objects and effects
+    let scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xf0f0f0 );  // #f0f0f0 -> 0xf0f0f0
     
     
-    // Make a camera for the scene
+    // Make a camera for the scene -- convert 3d space to 2d screen
     // camera parameters are FOV, aspect, minRenderLen, maxRenderLen
-    let camera;
+    let camera = new THREE.PerspectiveCamera( 50, width/height, 0.1, 2000 );
+    camera.position.x = 400;
+    camera.position.y = 400;
+    camera.position.z = 600;
     
     
     // Use a plugin library to get mouse controls
     //   Lots to be configured here, we will leave it at default
-    let control; 
+    let control = new THREE.OrbitControls( camera ); 
     
     
     // Create a renderer for displaying content
-    let renderer;
+    // Takes 2d screen and figures out how pixels should be colored
+    let renderer = new THREE.WebGLRenderer( {antialias: true} );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( width, height );
     
     // Options for adding shadows to renderer
-    // renderer.shadowMap.enabled = true;
-    // renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     
-    // Add the renderer to the HTML DOM
-    
+    // Add the renderer's canvas to the HTML DOM so the user can see it
+    container.appendChild( renderer.domElement );
     
     
     
     
     // 2. Compose the scene
+
+    // // Drawing a cube for testing
+    // // First get the geometry -- set of triangles that describe a shape
+    // let box = new THREE.BoxBufferGeometry( 100, 100, 100 );
+    
+    // // Now get the material to describe how the shape looks
+    //  Legend has it that #00cc00 is LoZ Link Green
+    //   (looks like this claim has merit: https://www.color-hex.com/color-palette/41305
+    // let material = new THREE.MeshLambertMaterial( {color: 0x00cc00} );
+    
+    // // Put them together to get a Mesh, or actual 3d scene object, and add to scene
+    // let cube = new THREE.Mesh( box, material );
+    // cube.position.z = 300;
+    // scene.add(cube);
+    
     
     // Make some lights -- we'll use them for a trick later, so let's make three of them
     
     function makeLight( xPos, yPos, zPos ) {
       
-      let light;
-      
+      let light = new THREE.DirectionalLight( 0xffffff, 0.8 );
+      light.position.set(xPos, yPos, zPos);
+
       // Options for adding shadows
-      // light.castShadow = true;
-      // light.shadow.camera.left = -width / 2;
-      // light.shadow.camera.right = width / 2;
-      // light.shadow.camera.top = -height / 2;
-      // light.shadow.camera.bottom = height / 2;
-  		// light.shadow.camera.near = 1;
-  		// light.shadow.camera.far = 4000;
-  		// light.shadow.mapSize.width = 1024;
-  		// light.shadow.mapSize.height = 1024;
+      light.castShadow = true;
+      light.shadow.camera.left = -width / 2;
+      light.shadow.camera.right = width / 2;
+      light.shadow.camera.top = -height / 2;
+      light.shadow.camera.bottom = height / 2;
+  		light.shadow.camera.near = 1;
+  		light.shadow.camera.far = 4000;
+  		light.shadow.mapSize.width = 1024;
+  		light.shadow.mapSize.height = 1024;
       
       return light;
       
     }
-
     
+    // Three lights that send light down each axis
+    let lightX = makeLight(500, 0, 0);
+    scene.add(lightX);
+    let lightY = makeLight(0, 500, 0);
+    scene.add(lightY);
+    let lightZ = makeLight(0, 0, 500);
+    scene.add(lightZ);
+
     
     
     // Create meshes for the points
-
     // sphereBufferGeometry( radius, widthSeg, heightSeg )
     
+    let geometry = new THREE.SphereBufferGeometry( 10, 14, 14 );
+    let meshes = [];
     
+    for (let i=0; i<data.length; i++) {
+        d = data[i];
+        
+        let material = new THREE.MeshLambertMaterial( {color: d.col } );
+        let mesh = new THREE.Mesh( geometry, material ); // All meshes can use same geometry
+        mesh.data = d;
+        
+        mesh.position.x = d.x;
+        mesh.rotation.x = 0;
+        mesh.scale.x = d.sz;
+        mesh.position.y = d.y;
+        mesh.rotation.y = 0;
+        mesh.scale.y = d.sz;
+        mesh.position.z = d.z;
+        mesh.rotation.z = 0;
+        mesh.scale.z = d.sz;
+        
+        // We want to use the shadows of these points to create 2d-ish plots
+        mesh.castShadow = true;
+        mesh.receiveShadow = false;
+        
+        scene.add(mesh);
+        meshes.push(mesh);
+        
+      
+    }
     
     
     // 3. Begin animating
-
+    function animate() {
+      
+      requestAnimationFrame( animate );
+      
+      render();
+      
+    }
+    function render() {
+      
+      control.update();
+      renderer.render( scene, camera );
+      
+      
+    }
+    
+    animate();
     
     
     
     // 4. Add some boxes to catch shadows (remember to enable shadows for lights). That ought to improve things a lot.
-    // let box = new THREE.BoxBufferGeometry( 500, 10, 500 );
-    // let material = new THREE.MeshLambertMaterial( {color: 0xf3f3f3} );
-    // 
-    // let cubeX = new THREE.Mesh( box, material );
-    // cubeX.position.y = -250;
-    // cubeX.receiveShadow = true;
-    // scene.add( cubeX );
-    // 
-    // let cubeY = new THREE.Mesh( box, material );
-    // cubeY.position.x = -250;
-    // cubeY.rotation.z = Math.PI / 2.0;
-    // cubeY.receiveShadow = true;
-    // scene.add( cubeY );
-    // 
-    // let cubeZ = new THREE.Mesh( box, material );
-    // cubeZ.position.z = -250;
-    // cubeZ.rotation.x = Math.PI / 2.0;
-    // cubeZ.receiveShadow = true;
-    // scene.add( cubeZ );
+    // The boxes will collect shadows from each point since our light sends photons directly down each axis
+    let box = new THREE.BoxBufferGeometry( 500, 10, 500 );
+    let material = new THREE.MeshLambertMaterial( {color: 0xf3f3f3} );
+    
+    let cubeX = new THREE.Mesh( box, material );
+    cubeX.position.y = -250;
+    cubeX.receiveShadow = true;
+    scene.add( cubeX );
+    
+    let cubeY = new THREE.Mesh( box, material );
+    cubeY.position.x = -250;
+    cubeY.rotation.z = Math.PI / 2.0;
+    cubeY.receiveShadow = true;
+    scene.add( cubeY );
+    
+    let cubeZ = new THREE.Mesh( box, material );
+    cubeZ.position.z = -250;
+    cubeZ.rotation.x = Math.PI / 2.0;
+    cubeZ.receiveShadow = true;
+    scene.add( cubeZ );
     
     
     // 5. Add some mouseovers! That will fix everything, right?
-    // var domEvents = new THREEx.DomEvents( camera, renderer.domElement );
-    // 
-    // meshes.forEach( mesh => {
-    // 
-    //   domEvents.addEventListener(mesh, 'mouseover', function(event) {
-    //     console.log(mesh.material)
-    //     d3.select("#label").text(mesh.data.name);
-    //     mesh.material.color.setHex( 0xff0000 );
-    // 
-    //   }, false);
-    //   domEvents.addEventListener(mesh, 'mouseout', function(event) {
-    // 
-    //     mesh.material.color.setHex( mesh.data.col );
-    // 
-    //   }, false);
-    // 
-    // });
+    // Note: We had to add a ['data'] key to our mesh object to store the original data
+    //       since there is no d3-style data join going on here
+    var domEvents = new THREEx.DomEvents( camera, renderer.domElement );
+    
+    meshes.forEach( mesh => {
+    
+      domEvents.addEventListener(mesh, 'mouseover', function(event) {
+        console.log(mesh.material)
+        d3.select("#label").text(mesh.data.name);
+        mesh.material.color.setHex( 0xff0000 );
+    
+      }, false);
+      domEvents.addEventListener(mesh, 'mouseout', function(event) {
+    
+        mesh.material.color.setHex( mesh.data.col );
+    
+      }, false);
+    
+    });
     
   
     
