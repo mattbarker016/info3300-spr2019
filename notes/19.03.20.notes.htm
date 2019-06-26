@@ -59,7 +59,6 @@
 
   <h5>HTML for today:</h5>
 
-
   <svg id="usa" height="500" width="800" style="background: #sff; margin-top:50px" >
   </svg>
 
@@ -237,9 +236,6 @@
 
 
 
-
-
-
   // COPIED FROM FEB18 NOTES -- WE ARE GOING TO UPDATE THIS A BIT!
 
   // 0. Find our SVG and get that ready
@@ -333,8 +329,8 @@
 
     // 5. Start plotting circles and see what happens
 
-
-    let scatter = svg.append("g") // We make a subgroup to contain the points we are adding, and use the margins to shrink it and move it to the right place, so that it doesn't overlap our axes
+    let scatterWrapper = svg.append("g");
+    let scatter = scatterWrapper.append("g") // We make a subgroup to contain the points we are adding, and use the margins to shrink it and move it to the right place, so that it doesn't overlap our axes
           .attr("id","chart-region")
           .attr("transform","translate("+margin.left+","+margin.top+")");
 
@@ -358,9 +354,45 @@
     });
 
     // END CODE FROM FEBRUARY 18
-    
-    // Will fill in on Friday
 
+
+    var chartZoom = d3.zoom()
+      .on("zoom", chartZoomed);
+
+    svg.call(chartZoom);
+
+    function chartZoomed() {
+        let transform = d3.event.transform;
+        scatter.attr("transform", d3.event.transform); // scatter was the group used to hold points
+
+        // update the scales on the axes/gridlines
+        // rescale does not modify the source scale
+        yAxis.scale(transform.rescaleY(yScale))
+        xAxis.scale(transform.rescaleX(xScale))
+        yGridlines.scale(transform.rescaleY(yScale))
+        xGridlines.scale(transform.rescaleX(xScale))
+
+        // apply new scaled axes (no need for transition since zoom triggers so many events)
+        yAxisLayer.call(yAxis);
+        xAxisLayer.call(xAxis);
+        yGridlineLayer.call(yGridlines);
+        xGridlineLayer.call(xGridlines);
+    }
+
+    // get rid of circles all over the place with a clip-path
+    // region that is "filled" within the <clipPath> will stay, pixels outside of it will be deleted
+    svg.append("defs").append("clipPath")
+                      .attr("id","chartclip")
+                      .append("rect").attr("x",margin.left)
+                                     .attr("y",margin.top)
+                                     .attr("width",chartWidth)
+                                     .attr("height",chartHeight);
+
+    // scatter.attr("clip-path","url(#chartclip)");
+    // this will not work because transform is also applied to clippath
+    // go up to scatter code and add this wrapper which will allow us to clip child nodes but not transform
+    //    let chartWrapper = svg.append("g")
+    scatterWrapper.attr("clip-path","url(#chartclip)");
 
 
   });

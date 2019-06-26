@@ -1,0 +1,411 @@
+<html><head>
+<title>INFO 3300 - April 12</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+
+  #fpsCounter {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 80px;
+    height: 30px;
+    background-color: #5c5c5c;
+    color: #fff;
+    text-align: center;
+    font-family: Lato, sans-serif;
+  }
+  #configPanel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 390px;
+    height: 70px;
+    padding: 10px;
+    border: 1px solid grey;
+    background-color: #fff;
+    font-family: Lato, sans-serif;
+  }
+
+
+
+  </style>
+</head>
+
+<body>
+  <div class="container larger">
+  <h3>Notes for April 12</h3>
+  <p>Today we'll look at raster graphics and vector graphics. <a href="https://designshack.net/articles/layouts/vector-vs-raster-what-do-i-use/">Here</a> is a small guide.</p>
+  <p>Here are a few articles talking about SVG versus Canvas and choosing between them: <a href="https://www.sitepoint.com/canvas-vs-svg-choosing-the-right-tool-for-the-job/">1</a>, <a href="https://medium.com/@benisinca/svg-vs-canvas-92938aff799a">2</a>, <a href="https://smus.com/canvas-vs-svg-performance/">3 (older)</a> </p>
+  <p>In addition to Canvas and SVG, there is also WebGL which has a few extra capabilities which are very handy. You can make use of fragment shaders for visual effects (and even <a href="http://glslsandbox.com/e#207.3">GPU computation</a>).
+  <p>You can <a href="http://bl.ocks.org/mbostock/5914438">mix the raster and vector together</a> with enough work!</p>
+  <h5>HTML for today:</h5>
+
+  <div id="fpsCounter">FPS</div>
+  <div id="configPanel">
+    <button id="stop">Stop</button>
+    <button id="startSVG">Start SVG</button>
+    <button id="startCanvas">Start Canvas</button>
+    <div>
+      <span>Density:&nbsp;&nbsp;</span>
+      <input type="range" min="0.01" max="0.5" step="0.01" id="densitySlider">
+      <span id="densityLabel"></span>
+    </div>
+
+  </div>
+  <p> SVG </p>
+  <svg width="769" height="512" class="model">
+  </svg>
+  <p> Canvas </p>
+  <canvas width="769" height="512" class="model"></canvas>
+
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+      <!--- autofilled --->
+    </code>
+  </pre>
+
+
+  <script id="notes1">
+
+  // Visualize a simple cellular automaton for traffic flow (Biham-Middleton-Levine traffic model)
+  // Inspired by Jason Davies example at: https://www.jasondavies.com/bml/#0.14/769/512
+
+  // Configure the random walk
+  var width = 769;    // model width in px
+  var height = 300;   // model height in px
+  var density = 0.22; // probability of a point being at a square
+  var automaton;      // storage for BML automaton
+  var timer;          // d3.timer instance
+  var useSVG = false; // toggle for SVG or canvas
+
+
+  // Examples
+  console.log( "BML Model:" );
+  console.log( generateBML(20, 20, 0.4) );
+
+
+  // Need to be able to stop simulation completely if it is super slow or we're resetting
+  // Kills d3 timer and wipes the SVG/Canvas elements
+  function killSimulation() {
+    if (timer) { timer.stop(); } // kill existing timer
+    d3.selectAll(".layer").html(""); // empty SVG layers
+    let ctx = document.querySelector("canvas.model").getContext("2d");
+    ctx.clearRect(0, 0, width, height); // empty canvas
+
+  }
+  // Restart simulation using the useSVG boolean to choose svg or canvas
+  // Invokes killSimulation, resizes canvas, generates new BML model, begins new d3.timer
+  function restartSimulation() {
+
+    killSimulation();
+
+    // update width/height as need be
+    d3.select("canvas.model").attr("width", width).attr("height", height);
+    d3.select("svg.model").attr("width", width).attr("height", height);
+
+    automaton = generateBML(width, height, density);
+
+    // render loop with FPS timer
+    let fps = d3.select("#fpsCounter").text("");
+    var time0 = Date.now();
+    var time1 = Date.now();
+    timer = d3.timer(function() {
+
+      // move the model one down/right step
+      stepBML(automaton);
+
+      // render using chosen element
+      if (useSVG) {
+        renderSVG(automaton);
+      }
+      else {
+        renderCanvas(automaton);
+      }
+
+      // compute FPS so we can better judge efficiency
+      //  use difference between time1 and time0 to compute how long the last frame took
+      //  in practice it may be more reliable here to do a moving window average
+      time1 = Date.now();
+      fps.text("FPS: " + Math.round(1000 / (time1 - time0)));
+      time0 = time1;
+
+    });
+  }
+
+
+  // Update width and height if changed in code at top of script
+  d3.select("canvas.model").attr("width", width).attr("height", height);
+  d3.select("svg.model").attr("width", width).attr("height", height);
+
+
+
+
+  // ---------- SVG ----------
+
+  // Use SVG to render the traffic model
+  const svg = d3.select("svg.model");
+  const downLayer = svg.append("g").attr("class","down layer");
+  const rightLayer = svg.append("g").attr("class","right layer");
+  const colorScale = d3.scaleOrdinal().domain([0,1,2]).range(["#fff","#5f64db","#c94426"]);
+
+  function renderSVG(bml) {
+
+    // 0. Use data joins to draw rectangles for populated cells in the model
+    //    Remember, cell type 0 is empty, type 1 is down, type 2 is right
+    let downRects = downLayer.selectAll("rect").data(bml.down);
+    downRects.enter().append("rect")
+        .attr("width",1)
+        .attr("height",1)
+        .attr("fill", colorScale(1))
+        .merge(downRects) // bring in existing rects and modify all of them
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+
+    let rightRects = rightLayer.selectAll("rect").data(bml.right);
+    rightRects.enter().append("rect")
+        .attr("width",1)
+        .attr("height",1)
+        .attr("fill", colorScale(2))
+        .merge(rightRects) // bring in existing rects and modify all of them
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+
+
+  }
+
+
+  // ---------- CANVAS ----------
+
+  // Use Canvas to render the traffic model
+
+  // 1. Get the canvas context
+  var canvas = document.querySelector("canvas.model");
+  var context = canvas.getContext("2d");
+
+  // 1b. Get some more data to do render more efficiently
+  // We do this by creating an "image" in memory and then pasting it to the canvas all in one go
+  // This means only one "paste" call instead of lots of fillRect
+  // The drawing context needs a specially formatted object in order to "paste", so we grab its existing empty one
+  var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  // We will modify the pixel data array in our imageData to create a new one to "paste" into the canvas
+  var pixels = imageData.data;
+
+  // To color in each pixel, we need separate R, G, and B values to use in the pixels array
+  // It doesn't take in a d3.rgb or anything special, just an unsigned 8bit integer
+  // To make this much more efficient, we use a property of how we defined our cell types
+  // Cell type 0 is an empty cell, type 1 is a down cell, and type 2 is a right cell
+  // So if we see a 1 in a particular place in the model's 2-d grid, then we know a DOWN is there
+
+  // Convert the down and right colors to RGB so that it's easier to make the lookup tables
+  //  We already know white is d3.rgb(255,255,255) so we can just hardcode that
+  let downC = d3.rgb(colorScale(1));
+  let rightC = d3.rgb(colorScale(2));
+
+  // We can feed the 0, 1, or 2 cell type right into a lookup table to get the proper R, G, and B values
+  //  e.g. colorR[0] == 255 because we want a white cell, colorR[1] is the "r" component of the down color, etc.
+  // By splitting it into 3 separate tables, it's easier to handle the separate elements in the pixel array
+  let colorR = [255, downC.r, rightC.r];
+  let colorG = [255, downC.g, rightC.g];
+  let colorB = [255, downC.b, rightC.b];
+
+
+  function renderCanvas(bml) {
+    // Remember to use JS functions to interact with the canvas and not d3 ones
+
+    // NOTE: This one was too slow due to lots of fillRect calls
+
+    // // 2. Clear the canvas so we can draw new content
+    // context.clearRect(0, 0, width, height);
+    //
+    // // 3a. Draw the down boxes
+    // //     Remember, cell type 0 is empty, type 1 is down, type 2 is right
+    //
+    // context.fillStyle = colorScale(1);
+    // for (let i = 0; i < bml.down.length; i++) {
+    //   let nd = bml.down[i];
+    //   context.fillRect( nd.x, nd.y, 1, 1 );
+    // }
+    //
+    //
+    // // 3b. Draw the right boxes
+    //
+    // context.fillStyle = colorScale(2);
+    // for (let i = 0; i < bml.right.length; i++) {
+    //   let nd = bml.right[i];
+    //   context.fillRect( nd.x, nd.y, 1, 1 );
+    // }
+
+
+    // 4. Use a more efficient rendering technique for the data
+    // We modify the pixels in our imageData to show the newest frame of animation
+    // We then "paste" it onto the canvas all at once -- intuition here is that array manipulations may be quicker than fillRects
+    // Thankfully we already have a 2-d array of our traffic model that uses 0, 1, and 2 to mark different kinds of cells
+    //  e.g. [0,1,1,0,0,0,0,0,0,2] is a row that is mostly empty but has two DOWN cells in it and one RIGHT cell
+    let grid = bml.grid;
+
+    // Loop through the grid
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+
+        // The grid uses y and x, but the pixels array is flat, like [R1,G1,B1,A1, R2,G2,B2,A2, R3...]
+        // This means we need to convert y and x to the proper place in the pixels array
+        // To do this, we use 4 * locationInPixelArray since each "pixel" is 4 elements long
+        // locationInPixelArray is y * width + x -- i.e. each increase in Y means we have to skip a whole row's WIDTH worth of pixels
+        //                                               and then we shift a little bit further WITHIN the row using X
+
+        // pixels[locationInPixelArray + offsetForRGBA] = R,G,B,A color value as an int
+        // red
+        pixels[4*(y*width + x) + 0] = colorR[ grid[y][x] ]  // use the color lookup table to map grid cells to color values
+        // green
+        pixels[4*(y*width + x) + 1] = colorG[ grid[y][x] ]  // use the color lookup table to map grid cells to color values
+        // blue
+        pixels[4*(y*width + x) + 2] = colorB[ grid[y][x] ]  // use the color lookup table to map grid cells to color values
+        // aalpha
+        pixels[4*(y*width + x) + 3] = 255; // we want fully opaque cells
+
+      }
+    }
+    context.putImageData(imageData, 0, 0);
+
+
+  }
+
+
+
+
+  // Button handlers for interactive environment
+  d3.select("#stop").on("click", function() {
+    killSimulation();
+  });
+  d3.select("#startSVG").on("click", function() {
+    useSVG = true;
+    restartSimulation();
+  });
+  d3.select("#startCanvas").on("click", function() {
+    useSVG = false;
+    restartSimulation();
+  });
+  d3.select("#densityLabel").text(density);
+  d3.select("#densitySlider")
+    .on("input", function() {
+      d3.select("#densityLabel").text(this.value);
+      density = this.value
+    })
+    .on("mouseup", function() {
+      if (timer) { // if we are already animating, reset
+        restartSimulation();
+      }
+    });
+
+
+
+  // Simulation is a Biham-Middleton-Levine traffic model: https://en.wikipedia.org/wiki/Biham%E2%80%93Middleton%E2%80%93Levine_traffic_model
+
+  // generate and return an initial BML automaton object
+  function generateBML(width, height, density) {
+
+    var randType = () => (Math.random() < 0.5) ? 1 : 2; // down or right cell
+    let targetCount = width*height*density;
+
+    // initialize and populate
+    //  go in reverse order so that node lists are sorted for scanning
+    //  use node lists so we don't have to loop through every grid element
+    let totalNodes = 0;
+    let downNodes = new Array();
+    let rightNodes = new Array();
+    let grid = new Array(height);
+    for (let y = height-1; y  >= 0; y--) {
+      grid[y] = new Array(width);
+      for (let x = width-1; x >= 0; x--) {
+        if (Math.random() > density) { // randomly left empty
+          grid[y][x] = 0;
+        }
+        else { // randomly fill
+          let t = randType();
+          let obj = {x: x, y: y, type: t};
+          grid[y][x] = t;
+
+          if (t === 1) { downNodes.push( obj ); }
+          else { rightNodes.push( obj ); }
+
+          totalNodes++;
+        }
+
+      }
+    }
+
+    return { grid: grid, right: rightNodes, down: downNodes };
+  }
+
+  // move a BML automaton one "step" forward
+  //  computes downs then rights, O(N)
+  function stepBML(bml) {
+
+    let height = bml.grid.length;
+    if (height < 1) { return; }
+    let width = bml.grid[0].length;
+
+    // NOTE: not going in lower right to upper left order might introduce inconsistencies with formal definition of model
+
+    for (let i = 0; i < bml.down.length; i++) {
+      let curY = bml.down[i].y;
+      let nextY = (curY + 1) % height;
+      let curX = bml.down[i].x;
+      // shift down if next spot (toroidally wrapped) is free
+      if (bml.grid[nextY][curX] == 0) {
+        // console.log('mvY',i,curY, nextY);
+        bml.grid[curY][curX] = 0;
+        bml.grid[nextY][curX] = bml.down[i].type;
+        bml.down[i].y = nextY;
+      }
+    }
+    for (let i = 0; i < bml.right.length; i++) {
+      let curX = bml.right[i].x;
+      let nextX = (curX + 1) % width;
+      let curY = bml.right[i].y;
+      // shift right if next spot (toroidally wrapped) is free
+      if (bml.grid[curY][nextX] == 0) {
+        // console.log('mvX',i,curX, nextX);
+        bml.grid[curY][curX] = 0;
+        bml.grid[curY][nextX] = bml.right[i].type;
+        bml.right[i].x = nextX;
+      }
+    }
+
+  }
+
+
+
+
+
+
+
+  </script>
+
+
+
+
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+  </div>
+</body>
+</html>

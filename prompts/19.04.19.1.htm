@@ -1,0 +1,375 @@
+<html><head>
+<title>INFO 3300 - April 19</title>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <style>
+  
+    circle {
+      fill: steelblue;
+    }
+    
+    path {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2;
+    }
+  
+    rect {
+      stroke: #888;
+      stroke-width: 1px;
+      fill: none;
+    }
+    
+    line {
+      stroke: #888;
+      stroke-width: 1px;
+      fill: none;
+      stroke-dasharray: 2;
+    }
+    
+    .sketch text {
+        font-size: 18px;
+        text-anchor: middle;
+    }
+    
+    .bracket {
+      stroke: #333;
+      stroke-width: 1px;
+      fill: none;
+    }
+    
+    .sketch .smallLabel text {
+      font-size: 14px;
+    }
+    
+    .axis text {
+      font-size: 10px;
+    }
+    
+    input {
+        margin-top: 20px;
+        margin-left: 40px;
+        width: 400px;
+    }
+  
+  </style>
+
+</head>
+<body>
+  <div class="container larger">
+  <h3>Prompt for April 19</h3>
+  <p>Linear Algebra: How do matrices work? Do they work on coordinates?? Let's find out! </p>
+  <p>Here is a neat <a href="http://setosa.io/ev/eigenvectors-and-eigenvalues/">interactive tool</a> for eigenvectors and eigenvalues.</p>
+
+  <h5>Example System</h5>
+  <p>Here is a simple dynamical system that describes the relationship between coyotes and roadrunners in a fictional country:</p>
+  <ul>
+    <li>Number of coyotes next year = 0.86*(number of coyotes this year) + 0.008*(number of roadrunners this year)</li>
+    <li>Number of roadrunners next year = -0.12*(number of coyotes this year) + 1.14*(number of roadrunners this year)</li>
+  </ul>
+  <ul>
+    <li>c(t+1) = 0.86c(t) + 0.008r(t)</li>
+    <li>r(t+1) = -0.12c(t) + 1.14r(t)</li>
+  </ul>
+  <svg class="sketch" width=550 height=200 >
+    <g transform="translate(0,30)">
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">c(t+1)</text>
+      <text x=35 y=85 class="y">r(t+1)</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=85 y=60>=</text>
+    </g>
+    <g transform="translate(95,30)" class="smallLabel">
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x1">0.86c(t)</text>
+      <text x=35 y=85 class="x2">-0.12c(t)</text>
+      <text x=105 y=35 class="y1">0.08r(t)</text>
+      <text x=105 y=85 class="y2">1.14r(t)</text>
+      <path d="M130,0 H140 V100 H130" class="bracket" />
+    </g>
+    <g transform="translate(275,30)">
+      <text x=-20 y=60>=</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x1">0.86</text>
+      <text x=35 y=85 class="x2">-0.12</text>
+      <text x=105 y=35 class="y1">0.08</text>
+      <text x=105 y=85 class="y2">1.14</text>
+      <path d="M130,0 H140 V100 H130" class="bracket" />
+      <text x=155 y=60>*</text>
+    </g>
+      <g transform="translate(450,30)">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="x">c(t)</text>
+        <text x=35 y=85 class="y">r(t)</text>
+        <path d="M60,0 H70 V100 H60" class="bracket" />
+      </g>
+  </svg>
+  <p>The matrix [(]c(t), r(t)] is a state vector, telling us everything we need to know about the system<br/>
+  The 2x2 matrix encodes all we need to do to the matrix in order to compute the following year's state vector</p>
+  <p>We can apply the matrix again and again to compute additional years, which can get a bit tedious</p>
+  <svg class="sketch" width=550 height=200 >
+    <g transform="translate(0,30)">
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">c(0)</text>
+      <text x=35 y=85 class="y">r(0)</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=85 y=60>=</text>
+    </g>
+    <g transform="translate(100,30)">
+      <text x=0 y=130 class="x">0</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">100</text>
+      <text x=35 y=85 class="y">100</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=90 y=60>-></text>
+    </g>
+    <g transform="translate(210,30)">
+      <text x=0 y=130 class="x">1</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">94</text>
+      <text x=35 y=85 class="y">102</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=90 y=60>-></text>
+    </g>
+    <g transform="translate(320,30)">
+      <text x=0 y=130 class="x">2</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">89</text>
+      <text x=35 y=85 class="y">105</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=110 y=60>. . .</text>
+    </g>
+    <g transform="translate(470,30)">
+      <text x=0 y=130 class="x">10</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">~80</text>
+      <text x=35 y=85 class="y">~170</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+    </g>
+  </svg>
+  <p>Let's plot out the stepwise changes from an initial state</p>
+  <div id="plotContainer">
+    <svg width=800 height=440 class="sketch" id="transformPlot">
+      
+      <g id="transformPlot">
+        <g id="axisX" class="axis" transform="translate(0,200)"></g>
+        <g id="axisY" class="axis" transform="translate(200,0)"></g>
+        <text x=415 y=300>c(t)</text>
+        <text x=100 y=420>r(t)</text>
+      </g>
+      <g transform="translate(450,30)" id="inMatrix">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="c">c(t)</text>
+        <text x=35 y=85 class="r">r(t)</text>
+        <path d="M60,0 H70 V100 H60" class="bracket" />
+      </g>
+      <g transform="translate(530,30)" id="transformMatrix">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="x1">X1</text>
+        <text x=35 y=85 class="x2">X2</text>
+        <text x=105 y=35 class="y1">Y1</text>
+        <text x=105 y=85 class="y2">Y2</text>
+        <path d="M130,0 H140 V100 H130" class="bracket" />
+        <text x=155 y=60>=</text>
+        <text x=80 y=150>(Note: floating point errors are common)</text>
+      </g>
+      <g transform="translate(700,30)" id="outMatrix">
+        <path d="M10,0 H0 V100 H10" class="bracket" />
+        <text x=35 y=35 class="c">c(t+1)</text>
+        <text x=35 y=85 class="r">r(t+1)</text>
+        <path d="M60,0 H70 V100 H60" class="bracket" />
+      </g>
+    </svg>
+    <button id="step">Compute next time</input>
+  </div>
+  
+  <br/>
+  <p>Something interesting happens if we pick a specific starting state vector</p>
+  
+  <svg class="sketch" width=550 height=200 >
+    <g transform="translate(0,30)">
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">c(0)</text>
+      <text x=35 y=85 class="y">r(0)</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=85 y=60>=</text>
+    </g>
+    <g transform="translate(100,30)">
+      <text x=0 y=130 class="x">0</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">100</text>
+      <text x=35 y=85 class="y">300</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=90 y=60>-></text>
+    </g>
+    <g transform="translate(210,30)">
+      <text x=0 y=130 class="x">1</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">110</text>
+      <text x=35 y=85 class="y">330</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=90 y=60>-></text>
+    </g>
+    <g transform="translate(320,30)">
+      <text x=0 y=130 class="x">2</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">121</text>
+      <text x=35 y=85 class="y">363</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+      <text x=110 y=60>. . .</text>
+    </g>
+    <g transform="translate(470,30)">
+      <text x=0 y=130 class="x">10</text>
+      <path d="M10,0 H0 V100 H10" class="bracket" />
+      <text x=35 y=35 class="x">~259</text>
+      <text x=35 y=85 class="y">~778</text>
+      <path d="M60,0 H70 V100 H60" class="bracket" />
+    </g>
+  </svg>
+  
+  <p>Each iteration, the state actually increases by a fixed amount! Step 1 is (1.1 * step0), Step 2 is (1.1*1.1 * step0)</p>
+  <p>Step N is then (1.1^n  *  step0)<br/>
+  For these special initial state vectors, we don't need the transformation matrix at all!</p>
+  <p>These special initial state vectors are called <strong>eigenvectors</strong>. The fixed amount of increase, 1.1, is the <strong>eigenvalue</strong>.<br/>
+  This transformation matrix has two of them: [100,300] and [200,100].</p>
+  <p>Eigenvectors give you one key benefit: Because they describe a consistent "line" moving from [0,0], you can use them to compute c(t) and r(t) for other state vectors!</p>
+  
+  
+  
+  
+
+
+  <!-- This block will be automatically filled with syntax-highlighted code from the script below -->
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+    </code>
+  </pre>
+
+
+  <!--- Code for today's class --->
+
+  <script id="transforms">
+  
+    // What goes here?
+    let initialState = { coyotes: 100, roadrunners: 100 };
+    let matrix = [ [0,0], [0,0] ]; 
+  
+    var points = [initialState];
+    
+    function addNextPoint() {
+        
+        let last = points[ points.length-1 ];
+        
+        // What goes here?
+        let c = 1;
+        let r = 1;
+        
+        points.push( {coyotes: c, roadrunners: r} );
+        
+        
+        d3.select("#inMatrix .c").text( toFixed(last.coyotes, 2) );
+        d3.select("#inMatrix .r").text( toFixed(last.roadrunners, 2) );
+        d3.select("#outMatrix .c").text( toFixed(c, 2) );
+        d3.select("#outMatrix .r").text( toFixed(r, 2) );
+      
+    }
+    
+    
+    
+    
+    
+    let plot = d3.select("#transformPlot");
+    let width = 400;
+    let height = 400;
+    let xScale = d3.scaleLinear().domain([-100, 300]).range([10,width-10]);
+    let yScale = d3.scaleLinear().domain([-100, 300]).range([height-10,10]);
+    let xAxis = d3.axisBottom(xScale);
+    let yAxis = d3.axisLeft(yScale);
+    let lineGen = d3.line().x(d=>xScale(d.coyotes)).y(d=>yScale(d.roadrunners));
+    let line = plot.append("path");
+    d3.select("#axisX").attr("transform","translate(0,"+yScale(0)+")").call(xAxis);
+    d3.select("#axisY").attr("transform","translate("+xScale(0)+",0)").call(yAxis);
+    
+    
+    function updateTransformPlot() {
+      
+        let circles = plot.selectAll("circle").data(points);
+        circles.enter().append("circle")
+          .attr("r", 5)
+          .attr("opacity",0.6)
+          .merge(circles)
+          .attr("cx", d => xScale(d.coyotes))
+          .attr("cy", d => yScale(d.roadrunners));
+              
+        line.datum(points).attr("d", lineGen);
+    }
+    updateTransformPlot();
+    
+    
+    d3.select("#step").on("click", function() {
+      
+        addNextPoint();
+        
+        updateTransformPlot();
+        
+    });
+    
+    
+    
+    
+    
+    
+    function updateMatrixDisplay() {
+      d3.select("#transformMatrix .x1").text( toFixed( matrix[0][0], 2) );
+      d3.select("#transformMatrix .x2").text( toFixed( matrix[1][0], 2) );
+      d3.select("#transformMatrix .y1").text( toFixed( matrix[0][1], 2) );
+      d3.select("#transformMatrix .y2").text( toFixed( matrix[1][1], 2) );
+    }
+    updateMatrixDisplay();
+  
+  
+  
+    function toRadians (deg) {
+      return deg * (Math.PI/180.0);
+    }
+    // floating point error immune fixed decimal string format care of https://stackoverflow.com/posts/11818658/revisions
+    function toFixed(num, fixed) {
+      var re = new RegExp('^-?\\d+(?:\.\\d{0,' + (fixed || -1) + '})?');
+      return num.toString().match(re)[0];
+    } 
+  
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("transforms").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+  </div>
+</body>
+</html>

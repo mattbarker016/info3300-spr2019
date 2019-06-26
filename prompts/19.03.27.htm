@@ -1,0 +1,197 @@
+<html><head>
+<title>INFO 3300 - March 27</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="../css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="../css/skeleton.css">
+  <link rel="stylesheet" type="text/css" href="../css/custom-style.css">
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+
+  line.dashed {
+    stroke: #aaa;
+    stroke-width: 1px;
+    stroke-dasharray: 2;
+  }
+  text.axis {
+    text-anchor: end;
+    font-variant: all-small-caps;
+  }
+
+
+  </style>
+</head>
+
+<body>
+  <div class="container larger">
+  <h3>Notes for March 27</h3>
+  <p>Don't forget that the project demo day and deadline are fast approaching! Demos on April 10.</p>
+  <p>Check out the documentation for <a href="https://github.com/d3/d3-force">d3.force</a> and the subsection for available <a href="https://github.com/d3/d3-force#forces">forces</a></p>
+  <p>It turns out that d3 does not put every node at 0,0 directly if x and y are null. Instead, it staggers them using a <a href="https://observablehq.com/@mbostock/phyllotaxis">phyllotaxis arrangement</a>.</p>
+  <p>Here is the d3.drag <a href="https://github.com/d3/d3-drag">documentation</a> and an <a href="https://bl.ocks.org/mbostock/3127661b6f13f9316be745e77fdfb084">example that combines drag and zoom</a>.</p>
+
+  <h5>HTML for today:</h5>
+
+  <svg id="graph" height="800" width="800" style="background: #sff; margin-top:50px" >
+  </svg>
+  <div>
+  <button id="play">Play</button>
+  <button id="stop">Stop</button>
+  <button id="tick">Tick</button>
+  </div>
+
+
+
+  <h5>Code for today:</h5>
+  <pre>
+    <code id="display1" class="hljs javascript">
+      <!--- autofilled --->
+    </code>
+  </pre>
+
+
+  <script id="notes1">
+
+  // Layer for drawing
+  const layer = d3.select("#graph").append("g");
+  const width = d3.select("#graph").attr("width");
+  const height = d3.select("#graph").attr("height");
+  const colorScale = d3.scaleOrdinal(d3.schemeSet1);
+
+  // (turn on to get circle indicators for later in the demo)
+  // for (let i=0; i<=4; i++) {
+  //   layer.append("circle").attr("cx",width/2).attr("cy",height/2).attr("fill","none").attr("stroke","#AAA").attr("r",i*80);
+  // }
+
+  const requestData = async () => {
+
+// Load dataset of CIS classes (note, I made this by hand so there will be tons of errors)
+const classes = await d3.json("../datasets/classes.json");
+console.log(classes);
+
+// Assemble data structures for a graph
+// var nodes = classes; // nodes can be just plain objects
+// var links = []; // links must have source,target as edge list
+//
+// // Loop through nodes to build edges
+// nodes.forEach( node => {
+//   // add course level and prefix using regex
+//   node.level = parseInt(/[A-Z]+(\d)/.exec(node.course)[1]);
+//   node.prefix = /([A-Z]+)/.exec(node.course)[1];
+//
+//   // One edge per pre-requisite course
+//   node['pre-reqs'].forEach( req => {
+//     // have to deal with crosslisting
+//     let candidate = nodes.find( d => {
+//       return (d.course === req) || (d.crosslist.indexOf(req) !== -1);
+//     });
+//
+//     links.push( { source: node.course, target: candidate.course } );
+//
+//   });
+//
+//   //zero the positions with a bit of noise
+//   node.x = width/2.0 + d3.randomUniform(-200,200)();
+//   node.y = height/2.0 + d3.randomUniform(-200,200)();
+//
+// });
+// console.log(" Nodes and links ");
+// console.log(nodes);
+// console.log(links);
+
+
+
+// Build a simulation for the graph
+var sim = d3.forceSimulation()
+            .nodes()
+
+// Do any pre-computing?
+
+// Update the chart for a new tick of the simulation
+function render() {
+
+  // Nodes
+
+
+
+  // Edges
+
+
+
+
+}
+
+render();
+
+
+
+// Handle drag events and add a nice text label
+var label = layer.append("text").attr("id","label");
+
+function dragstart(d) {
+
+
+
+}
+function dragging(d) {
+
+
+
+}
+function dragend(d) {
+
+
+
+}
+
+
+
+// Handle the buttons provided in the HTML
+d3.select("#play").on("click", () => {
+  // Start animating the simulation
+  sim.restart(); // clears the "alpha" value and starts fresh
+
+});
+d3.select("#stop").on("click", () => {
+  // Pause the simulation animation
+    sim.stop(); // pauses sim
+
+});
+d3.select("#tick").on("click", () => {
+  // Move the simulation one "tick"
+    sim.tick(); // moves one frame forward, but doesn't trigger tick event
+    render(); // manually update circles
+
+});
+
+
+
+  };
+
+  requestData();
+
+
+
+  </script>
+
+
+
+
+
+
+
+
+  <!--- calls the highlight library to fill the <pre> tag with code --->
+  <script>
+  document.getElementById("display1").innerText = document.getElementById("notes1").innerText;
+  hljs.initHighlightingOnLoad();
+  </script>
+
+
+  </div>
+</body>
+</html>
